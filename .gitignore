@@ -14,3 +14,5 @@ Desktop.ini
 # Node / Scratch
 scratch/
 node_modules/
+build-artifacts/
+*.apk
