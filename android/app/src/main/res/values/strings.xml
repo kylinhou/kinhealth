@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">安康记</string>
+    <string name="tab_dashboard">今日看板</string>
+    <string name="tab_quick_input">极速记</string>
+    <string name="tab_dossier">健康档案</string>
+    <string name="tab_settings">家庭设置</string>
+</resources>

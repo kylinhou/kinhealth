@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P4: 个人专属健康档案与数据资产库 - 安康记 Demo & 功能说明</title>
+  <style>
+    :root {
+      --teal-600: #0D9488;
+      --teal-700: #0F766E;
+      --teal-50: #F0FDFA;
+      --teal-100: #CCFBF1;
+      --rose-500: #F43F5E;
+      --rose-50: #FFF1F2;
+      --indigo-600: #4F46E5;
+      --indigo-50: #EEF2FF;
+      --amber-500: #F59E0B;
+      --amber-50: #FFFBEB;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #0B1120; color: #E2E8F0; min-height: 100vh; padding: 24px; display: flex; justify-content: center; }
+    .layout-grid { display: flex; gap: 32px; max-width: 1360px; width: 100%; align-items: flex-start; }
+
+    /* LEFT: PM SPECIFICATION SHEET */
+    .pm-spec-panel {
+      flex: 1.1;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      color: #E2E8F0;
+    }
+    .badge-nav { display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+    .pm-title { font-size: 22px; font-weight: 800; color: #F8FAFC; margin-bottom: 6px; }
+    .pm-subtitle { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 20px; }
+    .spec-section { background: #0F172A; border: 1px solid #334155; border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #CBD5E1; }
+    .spec-section h4 { color: #38BDF8; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .spec-section b { color: #F8FAFC; }
+    .link-portal { display: inline-flex; align-items: center; gap: 6px; color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 700; margin-top: 10px; }
+    .link-portal:hover { text-decoration: underline; }
+
+    /* RIGHT: MOBILE DEMO */
+    .phone-wrapper {
+      width: 410px;
+      height: 870px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 0 0 3px #334155, 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--slate-50);
+      border-radius: 38px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--slate-900);
+      position: relative;
+    }
+    .status-bar { height: 40px; padding: 10px 22px 0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--slate-700); background: #fff; }
+    .phone-content { flex: 1; overflow-y: auto; padding: 10px 16px 75px; scrollbar-width: none; }
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* Member Switcher Capsule (一人一档顶部胶囊) */
+    .mem-capsule-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .mcb-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .mcb-avatar { font-size: 20px; }
+    .mcb-title h3 { font-size: 13px; font-weight: 900; color: var(--slate-900); }
+    .mcb-title p { font-size: 10px; color: var(--slate-500); }
+    .mcb-switch-btn {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--teal-600);
+      background: var(--teal-50);
+      border: 1px solid var(--teal-100);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* Member Switcher Dropdown Modal */
+    .mem-dropdown-sheet {
+      display: none;
+      background: #FFFFFF;
+      border: 1.5px solid var(--teal-600);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(13,148,136,0.16);
+      animation: fadeIn 0.2s ease;
+    }
+    .mem-dropdown-sheet.show { display: block; }
+    .mds-grid { display: flex; gap: 6px; }
+    .mds-item {
+      flex: 1;
+      border: 1px solid var(--slate-200);
+      background: var(--slate-50);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mds-item.active {
+      border: 1.5px solid var(--teal-600);
+      background: var(--teal-50);
+      box-shadow: 0 2px 6px rgba(13,148,136,0.15);
+    }
+    .mds-item span.icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    .mds-item div.name { font-size: 11px; font-weight: 800; }
+    .mds-item div.sub { font-size: 9px; font-weight: 700; margin-top: 2px; }
+
+    /* Sub-Tabs (健康档案三大资产视角) */
+    .sub-tabs-strip {
+      display: flex;
+      background: var(--slate-200);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 12px;
+    }
+    .sub-tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 7px 0;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--slate-600);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sub-tab-btn.active {
+      background: #FFFFFF;
+      color: var(--teal-600);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    /* Sub-Panels */
+    .archive-panel { display: none; }
+    .archive-panel.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Paper Card (单人门诊长单) */
+    .doc-paper-card {
+      border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      background: #fff;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .doc-watermark {
+      position: absolute;
+      top: 12px; right: 12px;
+      border: 1.5px solid #2563EB;
+      color: #2563EB;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      background: #EFF6FF;
+    }
+    .doc-h1 { font-size: 15px; font-weight: 900; color: var(--slate-900); margin-bottom: 4px; padding-right: 60px; }
+    .doc-meta { font-size: 10px; color: var(--slate-500); padding-bottom: 8px; border-bottom: 1px dashed var(--slate-200); margin-bottom: 10px; }
+    .doc-block { margin-bottom: 10px; }
+    .doc-block-h { font-size: 11px; font-weight: 800; color: var(--teal-700); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+    .doc-block-body { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 8px 10px; font-size: 11px; line-height: 1.6; color: var(--slate-700); }
+
+    /* Charts */
+    .chart-card {
+      background: #FFFFFF;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .chart-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .chart-title { font-size: 12px; font-weight: 800; color: var(--slate-800); }
+    .chart-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); }
+
+    /* Bottom 4-Tab Navigation Bar */
+    .bottom-tab-bar {
+      height: 60px;
+      background: #FFFFFF;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 4px;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 50;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+    }
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--slate-500);
+      flex: 1;
+      padding: 4px 0;
+      transition: all 0.2s;
+    }
+    .tab-item.active { color: var(--teal-600); font-weight: 800; }
+    .tab-item .tab-icon { font-size: 18px; line-height: 1; }
+    .tab-item .tab-label { font-size: 10px; font-weight: 700; }
+    .tab-item-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      flex: 1;
+      margin-top: -14px;
+    }
+    .fab-circle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-600), #0F766E);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(13,148,136,0.4);
+      transition: transform 0.2s;
+    }
+    .fab-circle:hover { transform: scale(1.06); }
+    .tab-item-center .tab-label { font-size: 10px; font-weight: 800; color: var(--teal-600); }
+
+    /* Toast */
+    .toast-box {
+      position: absolute;
+      bottom: 75px; left: 50%;
+      transform: translateX(-50%);
+      background: #0F172A;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .toast-box.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="layout-grid">
+  <!-- LEFT PANEL: PM DETAILED FEATURE SPECIFICATION -->
+  <aside class="pm-spec-panel">
+    <div class="badge-nav">📑 PAGE 4 / 6 · 一人一档与全局人员上下文设计</div>
+    <h1 class="pm-title">单人专属健康档案与多角色切换体系</h1>
+    <p class="pm-subtitle">
+      贯彻<b>“一人一档（One Dossier Per Person）”</b>原则：今日看板与健康档案严格保持同一个人上下文联动，消除多人数据大杂烩的混乱感。
+    </p>
+
+    <div class="spec-section">
+      <h4>🎯 1. 为什么档案内绝不能同时混杂多个人的信息？</h4>
+      • <b>医疗就诊严谨性</b>：去医院看儿科，医生只关注安安的发热起伏与过敏，绝不能混入爷爷的尿酸与降压药；爷爷看痛风专科同样需要纯净的单人指标；<br>
+      • <b>全局上下文一致性（Global Active Member Context）</b>：<br>
+        用户在首页正在关注发热的安安，切到【健康档案】Tab，系统<b>默认自动呈现安安的专属档案</b>，符合“一人即一世界”的直觉预期。
+    </div>
+
+    <div class="spec-section">
+      <h4>💡 2. 切换入口的最佳呈现方案：全局联动 + 顶部轻量微型胶囊</h4>
+      • <b>Tab 1 首页大盘</b>：保留横向大滑轨，方便全局扫视“全家谁有异常”；<br>
+      • <b>Tab 3 健康档案</b>：<b>顶部常驻微型身份胶囊 <code>[ 👶 安安的健康档案 ▾ ]</code></b>：<br>
+        - 既明确标示了“当前档案属于谁”，又杜绝了冗余滑轨挤占宝贵的专业图表空间；<br>
+        - 轻触胶囊即可滑出轻量选择器，一键切换至爷爷或妈妈，<b>整份档案瞬间 100% 自适应变形重构</b>！
+    </div>
+
+    <div class="spec-section">
+      <h4>🔄 3. 互动交互测试指南</h4>
+      👉 <b>在右侧手机界面中轻点操作：</b><br>
+      1. 点击顶部的 <b>「切换 ▾」</b> 胶囊，在弹出的抽屉中选择 <b>👴 张大爷</b> 或 <b>👶 安安</b>；<br>
+      2. 观察下方 <b>趋势周报</b> (体温线 vs 尿酸线)、<b>门诊交接单</b> (儿科 vs 痛风科)、<b>药箱</b> (退热药 vs 降酸药) 是如何彻底纯净自适应的；<br>
+      3. 尝试点击 <b>「📸 保存为就诊高清长图」</b>，查看单人交接单导出效果。
+    </div>
+
+    <a href="index.html" class="link-portal">➔ 返回《安康记》全页面设计大厅 (Index Portal)</a>
+  </aside>
+
+  <!-- RIGHT PANEL: INTERACTIVE MOBILE DEMO -->
+  <main class="phone-wrapper">
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>09:41</span>
+        <span>5G 📶 98%</span>
+      </div>
+
+      <!-- Phone Content -->
+      <div class="phone-content">
+        <!-- Top App Title & Close -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h2 style="font-size:14px;font-weight:900;color:var(--slate-800);">📁 健康档案中枢 (Tab 3)</h2>
+          <button style="border:none;background:none;font-size:11px;color:var(--slate-500);cursor:pointer;" onclick="location.href='page_1_home_dashboard.html'">✕ 返回今日</button>
+        </div>
+
+        <!-- 🌟 核心突破：当前档案所属人微型切换胶囊 -->
+        <div class="mem-capsule-bar">
+          <div class="mcb-profile" onclick="toggleDropdown()">
+            <span class="mcb-avatar" id="dispAvatar">👶</span>
+            <div class="mcb-title">
+              <h3 id="dispMemTitle">安安的专属健康档案</h3>
+              <p id="dispMemSub">8个月 · 男 · 发热监护期第2天</p>
+            </div>
+          </div>
+          <button class="mcb-switch-btn" onclick="toggleDropdown()" id="btnSwitchTrigger">
+            <span>切换家人</span>
+            <span>▾</span>
+          </button>
+        </div>
+
+        <!-- Dropdown Selector (轻量人员切换抽屉) -->
+        <div class="mem-dropdown-sheet" id="memDropdown">
+          <div style="font-size:10px;font-weight:800;color:var(--slate-500);margin-bottom:6px;">点击切换查看专属健康档案：</div>
+          <div class="mds-grid">
+            <div class="mds-item active" id="mds-baby" onclick="selectMember('baby')">
+              <span class="icon">👶</span>
+              <div class="name">安安 (8个月)</div>
+              <div class="sub" style="color:var(--rose-500);">🤒 发热监护</div>
+            </div>
+            <div class="mds-item" id="mds-grandpa" onclick="selectMember('grandpa')">
+              <span class="icon">👴</span>
+              <div class="name">张大爷 (68岁)</div>
+              <div class="sub" style="color:var(--amber-600);">🧪 痛风控酸</div>
+            </div>
+            <div class="mds-item" id="mds-mom" onclick="selectMember('mom')">
+              <span class="icon">👩</span>
+              <div class="name">林女士 (我)</div>
+              <div class="sub" style="color:var(--teal-600);">🌸 健康日常</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Sub Tabs -->
+        <div class="sub-tabs-strip">
+          <button class="sub-tab-btn active" id="btnSubTrends" onclick="switchSubTab('trends')">📈 趋势周报</button>
+          <button class="sub-tab-btn" id="btnSubDoctor" onclick="switchSubTab('doctor')">🏥 就诊病程单</button>
+          <button class="sub-tab-btn" id="btnSubMeds" onclick="switchSubTab('meds')">💊 药箱与过敏</button>
+        </div>
+
+        <!-- Dynamic Container for Selected Member -->
+        <div id="dynamicArchiveContainer">
+          <!-- Injected via renderDossier() -->
+        </div>
+
+      </div>
+
+      <!-- Bottom 4-Tab Navigation Bar -->
+      <nav class="bottom-tab-bar">
+        <div class="tab-item" onclick="location.href='page_1_home_dashboard.html'">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">今日看板</span>
+        </div>
+        <div class="tab-item-center" onclick="location.href='page_3_speed_input.html'" title="极速记一笔">
+          <div class="fab-circle">➕</div>
+          <span class="tab-label">极速记</span>
+        </div>
+        <!-- Active Tab: 健康档案 -->
+        <div class="tab-item active" onclick="location.href='page_4_doctor_summary.html'">
+          <span class="tab-icon">📁</span>
+          <span class="tab-label" style="color:var(--teal-600);font-weight:800;">健康档案</span>
+        </div>
+        <div class="tab-item" onclick="location.href='page_6_member_settings.html'">
+          <span class="tab-icon">👨‍👩‍👧‍👦</span>
+          <span class="tab-label">家庭设置</span>
+        </div>
+      </nav>
+
+      <!-- Toast Feedback -->
+      <div class="toast-box" id="appToast">提示信息</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let activeMem = 'baby';
+  let activeSubTab = 'trends';
+
+  function showToast(msg) {
+    const t = document.getElementById('appToast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function toggleDropdown() {
+    const d = document.getElementById('memDropdown');
+    d.classList.toggle('show');
+  }
+
+  function selectMember(key) {
+    activeMem = key;
+    document.querySelectorAll('.mds-item').forEach(i => i.classList.remove('active'));
+    document.getElementById(`mds-${key}`).classList.add('active');
+    document.getElementById('memDropdown').classList.remove('show');
+
+    // Update Capsule
+    if (key === 'baby') {
+      document.getElementById('dispAvatar').innerText = '👶';
+      document.getElementById('dispMemTitle').innerText = '安安的专属健康档案';
+      document.getElementById('dispMemSub').innerText = '8个月 · 男 · 发热监护期第2天';
+    } else if (key === 'grandpa') {
+      document.getElementById('dispAvatar').innerText = '👴';
+      document.getElementById('dispMemTitle').innerText = '张大爷的专属健康档案';
+      document.getElementById('dispMemSub').innerText = '68岁 · 父亲 · 痛风与慢病代谢期';
+    } else {
+      document.getElementById('dispAvatar').innerText = '👩';
+      document.getElementById('dispMemTitle').innerText = '林女士的专属健康档案';
+      document.getElementById('dispMemSub').innerText = '32岁 · 我 · 健康日常体态管理';
+    }
+
+    showToast(`已切换至「${document.getElementById('dispMemTitle').innerText}」`);
+    renderDossier();
+  }
+
+  function switchSubTab(sub) {
+    activeSubTab = sub;
+    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    if (sub === 'trends') document.getElementById('btnSubTrends').classList.add('active');
+    else if (sub === 'doctor') document.getElementById('btnSubDoctor').classList.add('active');
+    else document.getElementById('btnSubMeds').classList.add('active');
+    renderDossier();
+  }
+
+  function renderDossier() {
+    const box = document.getElementById('dynamicArchiveContainer');
+
+    if (activeSubTab === 'trends') {
+      // 1. TRENDS SUB-TAB
+      if (activeMem === 'baby') {
+        box.innerHTML = `
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">安安 · 近48h体温起伏与给药点</span>
+              <span class="chart-badge" style="background:var(--rose-50);color:var(--rose-500);">最高 39.1℃</span>
+            </div>
+            <div style="height:100px;background:var(--slate-50);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--slate-200);">
+              <svg width="100%" height="80" viewBox="0 0 300 80">
+                <line x1="10" y1="30" x2="290" y2="30" stroke="#FECDD3" stroke-dasharray="3,3" stroke-width="1.5" />
+                <text x="15" y="24" fill="#F43F5E" font-size="8" font-weight="bold">38.5℃ 警戒线</text>
+                <polyline fill="none" stroke="#F43F5E" stroke-width="2.5" stroke-linecap="round" points="20,60 60,40 110,12 160,50 210,35 260,18 290,26" />
+                <circle cx="110" cy="12" r="3.5" fill="#4F46E5" />
+                <text x="100" y="8" fill="#4F46E5" font-size="7" font-weight="bold">美林</text>
+                <circle cx="260" cy="18" r="3.5" fill="#0D9488" />
+                <text x="245" y="12" fill="#0D9488" font-size="7" font-weight="bold">泰诺林</text>
+              </svg>
+            </div>
+            <div style="font-size:10px;color:var(--slate-500);margin-top:6px;display:flex;justify-content:space-between;">
+              <span>● 标记点: 退热药服用时刻</span>
+              <span style="color:var(--teal-600);font-weight:bold;">退热药 45min 顺利起效</span>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">WHO 0-3岁儿童生长发育曲线</span>
+              <span class="chart-badge" style="background:var(--teal-50);color:var(--teal-600);">P50 标准区间</span>
+            </div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 身长 71.5 cm (处在 P50~P75 优秀发育带)<br>
+              • 体重 8.6 kg (月增重 0.4kg，曲线轨迹平稳良好)
+            </p>
+          </div>
+        `;
+      } else if (activeMem === 'grandpa') {
+        box.innerHTML = `
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">张大爷 · 7天尿酸降酸波动趋势</span>
+              <span class="chart-badge" style="background:var(--amber-50);color:#C2410C;">警戒线 420</span>
+            </div>
+            <div style="height:90px;background:var(--slate-50);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--slate-200);">
+              <svg width="100%" height="70" viewBox="0 0 300 70">
+                <line x1="10" y1="40" x2="290" y2="40" stroke="#86EFAC" stroke-dasharray="3,3" stroke-width="1.5" />
+                <text x="15" y="35" fill="#059669" font-size="8" font-weight="bold">420 安全上限</text>
+                <polyline fill="none" stroke="#D97706" stroke-width="2.5" points="20,12 65,22 110,26 155,16 200,45 245,30 285,24" />
+                <circle cx="285" cy="24" r="3.5" fill="#C2410C" />
+                <text x="268" y="16" fill="#C2410C" font-size="9" font-weight="bold">485</text>
+              </svg>
+            </div>
+            <div style="font-size:10px;color:var(--slate-500);margin-top:6px;">
+              今晨测得 485 μmol/L，近7天仅1天达标，需强化足量饮水并严格杜绝肉汤。
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">晨起血压与脉搏走势 (连续14天)</span>
+              <span class="chart-badge" style="background:var(--teal-50);color:var(--teal-600);">达标率 100%</span>
+            </div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 收缩压均值: 124 mmHg | 舒张压均值: 78 mmHg<br>
+              • 静息心率均值: 71 bpm (心脑血管平稳无异常)
+            </p>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">林女士 · 本月身体作息与体态指数</span>
+              <span class="chart-badge" style="background:var(--teal-50);color:var(--teal-600);">BMI 20.6 标准</span>
+            </div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 深度睡眠均值: 2.1小时 (昨夜深睡质量优)<br>
+              • 每日饮水达成率: 92% (平均 1850ml)<br>
+              • 周期第 14 天 · 情绪平稳充沛
+            </p>
+          </div>
+        `;
+      }
+    } else if (activeSubTab === 'doctor') {
+      // 2. DOCTOR SUMMARY SUB-TAB
+      if (activeMem === 'baby') {
+        box.innerHTML = `
+          <div class="doc-paper-card">
+            <span class="doc-watermark">儿科问诊长单</span>
+            <h3 class="doc-h1">安安 (8个月·男) 儿科快速交接单</h3>
+            <div class="doc-meta">导出时间: 今日 09:30 | 监护人: 林女士 | 体重: 8.6kg</div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>🌡️</span> 1. 发热病程与热峰走势</div>
+              <div class="doc-block-body">持续约 31 小时，最高 39.1 ℃ (耳温)；服退热药后45分钟可退至37.4℃。</div>
+            </div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>💊</span> 2. 已服退热药物清单 (严防重复给药)</div>
+              <div class="doc-block-body">昨12:40 美林 3.0ml；昨19:15 泰诺林 3.5ml；今04:45 泰诺林 3.5ml (已超4.5h安全间隔)。</div>
+            </div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>👶</span> 3. 伴随症状与精神反应</div>
+              <div class="doc-block-body">流清涕、偶发干咳；退烧后精神良好能玩耍；无抽搐、无皮疹、无嗜睡发蔫。</div>
+            </div>
+            <div class="doc-block">
+              <div class="doc-block-h" style="color:var(--rose-500);"><span>🛡️</span> 4. 过敏红线提示</div>
+              <div class="doc-block-body" style="background:var(--rose-50);border-color:#FECDD3;color:var(--rose-600);">
+                鸡蛋清轻度过敏、青霉素类药物禁忌！
+              </div>
+            </div>
+          </div>
+          <button onclick="showToast('📸 高清儿科问诊长图已生成并保存至系统相册！')" style="width:100%;background:linear-gradient(135deg, #2563EB, #1D4ED8);color:#fff;border:none;border-radius:var(--radius-full);padding:12px 0;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,0.3);margin-bottom:12px;">
+            📸 保存安安就诊高清长图 (相册) ➔
+          </button>
+        `;
+      } else if (activeMem === 'grandpa') {
+        box.innerHTML = `
+          <div class="doc-paper-card">
+            <span class="doc-watermark" style="border-color:#C2410C;color:#C2410C;background:#FFFBEB;">慢病专科长单</span>
+            <h3 class="doc-h1">张大爷 (68岁) 痛风与慢病专科交接单</h3>
+            <div class="doc-meta">导出时间: 今日 09:30 | 随诊科室: 风湿免疫科/代谢科</div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>🧪</span> 1. 尿酸指标与痛风发作记录</div>
+              <div class="doc-block-body">今晨指尖血尿酸 485 μmol/L (超出基线+65)；近3个月无急性痛风关节红肿发作。</div>
+            </div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>💊</span> 2. 规律处方药与治疗清单</div>
+              <div class="doc-block-body">每日晚间服用非布司他片 20mg (降尿酸)；晨服降压片 1片，血压长期稳定于 126/80。</div>
+            </div>
+            <div class="doc-block">
+              <div class="doc-block-h"><span>🏥</span> 3. 肝肾功能随访提示</div>
+              <div class="doc-block-body">上次肝肾功与血肌酐复查为上月15日，肾小球滤过率正常，未见肾结石指征。</div>
+            </div>
+          </div>
+          <button onclick="showToast('📸 高清慢病随诊长图已保存至系统相册！')" style="width:100%;background:linear-gradient(135deg, #C2410C, #9A3412);color:#fff;border:none;border-radius:var(--radius-full);padding:12px 0;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(194,65,12,0.3);margin-bottom:12px;">
+            📸 保存张大爷慢病随诊长图 (相册) ➔
+          </button>
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="doc-paper-card">
+            <span class="doc-watermark" style="border-color:var(--teal-600);color:var(--teal-600);background:var(--teal-50);">体检归档</span>
+            <h3 class="doc-h1">林女士 (32岁) 年度体检与健康档案</h3>
+            <div class="doc-meta">归档状态: 2026年度体检正常 | 无急病门诊记录</div>
+            <div class="doc-block-body">
+              各项基础血液生化、心电图均正常；建议继续保持规律作息与有氧运动。
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      // 3. MEDS & ALLERGIES SUB-TAB
+      if (activeMem === 'baby') {
+        box.innerHTML = `
+          <div style="background:var(--rose-50);border:1.5px solid #FECDD3;border-radius:var(--radius-lg);padding:12px;margin-bottom:10px;">
+            <div style="font-size:12px;font-weight:900;color:var(--rose-600);margin-bottom:4px;">🛡️ 安安个人过敏红线</div>
+            <div style="font-size:11px;color:var(--slate-800);line-height:1.6;">
+              • 鸡蛋清过敏 (轻度湿疹)<br>
+              • <b>青霉素类药物禁忌 (红线严防)</b>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div style="font-weight:800;font-size:12px;margin-bottom:6px;">💊 安安专用备用药箱</div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 泰诺林滴剂: 3.5ml/次 (间隔4-6h)<br>
+              • 美林滴剂: 3.0ml/次 (间隔6-8h)<br>
+              • 生理盐水喷鼻剂: 每日清理清涕
+            </p>
+          </div>
+        `;
+      } else if (activeMem === 'grandpa') {
+        box.innerHTML = `
+          <div style="background:var(--amber-50);border:1.5px solid #FDE68A;border-radius:var(--radius-lg);padding:12px;margin-bottom:10px;">
+            <div style="font-size:12px;font-weight:900;color:#C2410C;margin-bottom:4px;">🛡️ 张大爷慢病用药禁忌</div>
+            <div style="font-size:11px;color:var(--slate-800);line-height:1.6;">
+              • 无已知药物过敏<br>
+              • <b>痛风急性发作期禁用阿司匹林类抗炎药</b>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div style="font-weight:800;font-size:12px;margin-bottom:6px;">💊 张大爷慢病处方药箱</div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 非布司他片: 每日晚间 20mg (常备充足)<br>
+              • 降压缓释片: 晨起 1片 (常备充足)
+            </p>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="chart-card">
+            <div style="font-weight:800;font-size:12px;margin-bottom:6px;">🌸 林女士健康常备品</div>
+            <p style="font-size:11px;color:var(--slate-700);line-height:1.6;">
+              • 复合维生素B族 / 维生素C<br>
+              • 益生菌口服粉 (肠道调理)<br>
+              • 无任何药物过敏记录
+            </p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Initial Render
+  renderDossier();
+</script>
+
+</body>
+</html>

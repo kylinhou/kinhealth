@@ -1,0 +1,2835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>安康记 (AnkangCare) - 现代化家庭健康追踪 App 高保真交互设计</title>
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & SYSTEM VARIABLES (暖愈医疗极简设计系统)
+       ========================================================================== */
+    :root {
+      /* Brand Color System */
+      --teal-50: #F0FDFA;
+      --teal-100: #CCFBF1;
+      --teal-200: #99F6E4;
+      --teal-500: #14B8A6;
+      --teal-600: #0D9488; /* 核心主品牌色：平静松青 */
+      --teal-700: #0F766E;
+
+      --amber-50: #FFFBEB;
+      --amber-100: #FEF3C7;
+      --amber-500: #F59E0B; /* 活力温杏：饮食/辅食/日常 */
+      --amber-600: #D97706;
+
+      --rose-50: #FFF1F2;
+      --rose-100: #FFE4E6;
+      --rose-500: #F43F5E; /* 珊瑚绯红：发热/紧急症状 */
+      --rose-600: #E11D48;
+
+      --indigo-50: #EEF2FF;
+      --indigo-100: #E0E7FF;
+      --indigo-500: #6366F1; /* 慢病与药物：沉静靛蓝 */
+      --indigo-600: #4F46E5;
+
+      --emerald-50: #ECFDF5;
+      --emerald-100: #D1FAE5;
+      --emerald-500: #10B981; /* 正常安全绿 */
+      --emerald-600: #059669;
+
+      /* Neutral Color System */
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1E293B;
+      --slate-900: #0F172A;
+
+      /* App Surfaces & Elevation */
+      --app-bg: #F8FAFC;
+      --surface-white: #FFFFFF;
+      --surface-glass: rgba(255, 255, 255, 0.88);
+      --border-subtle: rgba(226, 232, 240, 0.85);
+      --border-focus: #0D9488;
+
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+      --shadow-float: 0 12px 30px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+      --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+
+      /* Typography & Radius */
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, sans-serif;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-xl: 28px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background: #0B1120;
+      color: var(--slate-800);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       2. WORKSPACE / DUAL STAGE LAYOUT (演示工作台 + Android 旗舰机)
+       ========================================================================== */
+    .workspace-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 36px;
+      max-width: 1400px;
+      width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    /* Left Control & Design Insights Panel */
+    .design-console {
+      flex: 1;
+      max-width: 480px;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      color: #E2E8F0;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(13, 148, 136, 0.2);
+      color: #2DD4BF;
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .console-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #F8FAFC;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .console-subtitle {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .scenario-picker-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #64748B;
+      margin-bottom: 12px;
+    }
+
+    .scenario-btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .scenario-card-btn {
+      background: #0F172A;
+      border: 1.5px solid #334155;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .scenario-card-btn:hover {
+      border-color: #38BDF8;
+      transform: translateY(-2px);
+      background: #162032;
+    }
+
+    .scenario-card-btn.active {
+      border-color: #2DD4BF;
+      background: rgba(13, 148, 136, 0.12);
+      box-shadow: 0 0 0 1px #2DD4BF;
+    }
+
+    .scenario-icon {
+      font-size: 22px;
+      line-height: 1;
+      padding: 8px;
+      background: #1E293B;
+      border-radius: 12px;
+    }
+
+    .scenario-info h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F1F5F9;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-info h4 span.tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .tag-fever { background: #7F1D1D; color: #FCA5A5; }
+    .tag-elder { background: #1E3A8A; color: #93C5FD; }
+    .tag-baby { background: #78350F; color: #FDE68A; }
+
+    .scenario-info p {
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    .design-spec-box {
+      background: #0F172A;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      border: 1px solid #334155;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #94A3B8;
+    }
+
+    .design-spec-box h5 {
+      font-size: 13px;
+      color: #38BDF8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       3. ANDROID FLAGSHIP DEVICE SHELL (高颜值现代手机框)
+       ========================================================================== */
+    .device-viewport {
+      width: 420px;
+      height: 870px;
+      background: #000000;
+      border-radius: 50px;
+      padding: 12px;
+      box-shadow:
+        0 0 0 4px #334155,
+        0 25px 60px -10px rgba(0, 0, 0, 0.8),
+        0 50px 100px -20px rgba(0, 0, 0, 0.6);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .device-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--app-bg);
+      border-radius: 40px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Android Modern Status Bar */
+    .status-bar {
+      height: 42px;
+      padding: 10px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-800);
+      z-index: 20;
+      background: transparent;
+    }
+
+    .camera-cutout {
+      width: 12px;
+      height: 12px;
+      background: #000000;
+      border-radius: 50%;
+      margin: 0 auto;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    /* Scrollable App Body */
+    .app-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 18px 90px;
+      scrollbar-width: none;
+      position: relative;
+    }
+
+    .app-scroll-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ==========================================================================
+       4. TOP APP HEADER & MEMBER SLIDER
+       ========================================================================== */
+    .top-brand-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .app-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 17px;
+      box-shadow: 0 4px 10px rgba(13, 148, 136, 0.35);
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
+    }
+
+    .header-quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface-white);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--teal-600);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sync-pulse {
+      width: 6px;
+      height: 6px;
+      background: var(--teal-500);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.4); }
+    }
+
+    .icon-circle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--surface-white);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slate-600);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .icon-circle-btn:active {
+      transform: scale(0.92);
+      background: var(--slate-100);
+    }
+
+    /* Family Members Carousel */
+    .family-carousel-wrapper {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 2px 0 14px;
+      scrollbar-width: none;
+      margin-bottom: 4px;
+    }
+
+    .family-carousel-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .member-chip {
+      flex-shrink: 0;
+      background: var(--surface-white);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 8px 14px 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .member-chip.active {
+      border-color: var(--teal-600);
+      background: var(--surface-white);
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .member-chip.fever-glow {
+      border-color: var(--rose-500);
+      box-shadow: 0 4px 16px rgba(244, 63, 94, 0.25);
+    }
+
+    .member-avatar-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--slate-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      position: relative;
+    }
+
+    .member-badge-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+    .badge-red { background: var(--rose-500); }
+    .badge-blue { background: var(--indigo-500); }
+
+    .member-text-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-text-group .name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .member-text-group .state-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--slate-500);
+    }
+
+    .member-chip.active .member-text-group .name {
+      color: var(--teal-700);
+    }
+
+    .member-chip.fever-glow .member-text-group .state-label {
+      color: var(--rose-600);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       5. FEATURE SCENARIO 1: PEDIATRIC FEVER CARE BOARD (儿童感冒发热监护看板)
+       ========================================================================== */
+    .fever-care-board {
+      background: linear-gradient(145deg, #FFF1F2 0%, #FFFFFF 100%);
+      border: 1.5px solid #FFE4E6;
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fever-board-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .fever-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--rose-500);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 8px rgba(244, 63, 94, 0.35);
+    }
+
+    .doctor-order-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #FFFFFF;
+      border: 1px solid #FECDD3;
+      color: var(--rose-600);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .doctor-order-btn:active {
+      transform: scale(0.95);
+      background: #FFF1F2;
+    }
+
+    /* 核心杀手锏：用药安全倒计时罗盘 + 当前温度横幅 */
+    .fever-hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .hero-metric-tile {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      border: 1px solid rgba(244, 63, 94, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hero-tile-label {
+      font-size: 11px;
+      color: var(--slate-500);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero-tile-val {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--rose-600);
+      line-height: 1.1;
+      margin: 6px 0 4px;
+    }
+
+    .hero-tile-val small {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-left: 2px;
+    }
+
+    .hero-tile-status {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--rose-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 用药安全倒计时罗盘 */
+    .med-safety-compass {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      border: 1px solid #E0E7FF;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .compass-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--indigo-600);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .compass-dial-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0 4px;
+    }
+
+    .dial-circle-svg {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      transform: rotate(-90deg);
+    }
+
+    .dial-bg {
+      stroke: #EEF2FF;
+      stroke-width: 4;
+      fill: none;
+    }
+
+    .dial-progress {
+      stroke: var(--emerald-500);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 20; /* 剩余进度 */
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .dial-center-text {
+      font-size: 10px;
+      font-weight: 800;
+      fill: var(--slate-700);
+      text-anchor: middle;
+      dominant-baseline: central;
+      transform: rotate(90deg);
+    }
+
+    .compass-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .compass-info-state {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--emerald-600);
+    }
+
+    .compass-info-sub {
+      font-size: 10px;
+      color: var(--slate-500);
+      margin-top: 1px;
+    }
+
+    .compass-footer-rule {
+      font-size: 10px;
+      color: var(--slate-500);
+      background: #F8FAFC;
+      padding: 3px 6px;
+      border-radius: 6px;
+    }
+
+    /* 双轴体温与用药走势图 */
+    .chart-card-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 12px 14px 10px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .chart-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-800);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+      color: var(--slate-500);
+    }
+
+    .legend-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chart-canvas-wrap {
+      width: 100%;
+      height: 130px;
+      position: relative;
+    }
+
+    canvas#feverChartCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-footer-caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--slate-200);
+      font-size: 10px;
+      color: var(--slate-500);
+    }
+
+    /* 伴随症状快捷观察区 */
+    .symptom-chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .symptom-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .symptom-pill {
+      flex-shrink: 0;
+      font-size: 11px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--slate-700);
+      font-weight: 500;
+    }
+
+    .symptom-pill.active-warn {
+      background: #FFF1F2;
+      border-color: #FECDD3;
+      color: var(--rose-600);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       6. DAILY METRICS 2x2 GRID (日常 4/6 高频核心卡)
+       ========================================================================== */
+    .section-headline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 18px 0 10px;
+      padding: 0 2px;
+    }
+
+    .section-headline h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--slate-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-headline .more-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal-600);
+      cursor: pointer;
+    }
+
+    .metric-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-item-card {
+      background: var(--surface-white);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .metric-item-card:hover {
+      border-color: var(--teal-500);
+      transform: translateY(-2px);
+    }
+
+    .metric-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .metric-item-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-600);
+    }
+
+    .metric-item-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    .icon-milk { background: #FEF3C7; color: #D97706; }
+    .icon-poop { background: #ECFDF5; color: #059669; }
+    .icon-temp { background: #FFE4E6; color: #E11D48; }
+    .icon-uric { background: #FFEDD5; color: #C2410C; }
+    .icon-bp   { background: #EEF2FF; color: #4F46E5; }
+    .icon-diet { background: #F0FDF4; color: #16A34A; }
+
+    .metric-main-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--slate-900);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .metric-main-value small {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-left: 2px;
+    }
+
+    .metric-sub-badge {
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      width: fit-content;
+    }
+
+    .badge-soft-green { background: var(--emerald-50); color: var(--emerald-600); }
+    .badge-soft-warn  { background: var(--amber-50); color: var(--amber-600); }
+    .badge-soft-rose  { background: var(--rose-50); color: var(--rose-600); }
+    .badge-soft-blue  { background: var(--indigo-50); color: var(--indigo-600); }
+
+    /* ==========================================================================
+       7. FEATURE SCENARIO 2: ELDER HEALTH & URIC ACID (老人慢病与高尿酸看板)
+       ========================================================================== */
+    .elder-care-board {
+      background: linear-gradient(145deg, #EEF2FF 0%, #FFFFFF 100%);
+      border: 1.5px solid #E0E7FF;
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .elder-board-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .elder-tag-pill {
+      background: var(--indigo-600);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    canvas#uricChartCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .purine-tips-box {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #92400E;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       8. TIMELINE STREAM (家庭健康流水时间线)
+       ========================================================================== */
+    .timeline-container {
+      background: var(--surface-white);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .timeline-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .timeline-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--slate-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-collaborators {
+      font-size: 11px;
+      color: var(--slate-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .timeline-list::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      bottom: 14px;
+      left: 17px;
+      width: 2px;
+      background: var(--slate-200);
+    }
+
+    .timeline-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      position: relative;
+      padding-bottom: 16px;
+    }
+
+    .timeline-entry:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-entry-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      z-index: 2;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .timeline-entry-icon.icon-border-red { border-color: var(--rose-500); }
+    .timeline-entry-icon.icon-border-blue { border-color: var(--indigo-500); }
+    .timeline-entry-icon.icon-border-green { border-color: var(--emerald-500); }
+    .timeline-entry-icon.icon-border-amber { border-color: var(--amber-500); }
+
+    .timeline-content-card {
+      flex: 1;
+      background: var(--slate-50);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .timeline-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .timeline-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .timeline-time-str {
+      font-size: 11px;
+      color: var(--slate-400);
+      font-weight: 600;
+    }
+
+    .timeline-card-desc {
+      font-size: 12px;
+      color: var(--slate-600);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .timeline-author-tag {
+      font-size: 10px;
+      color: var(--slate-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       9. FLOATING ACTION BUTTON (FAB) & BOTTOM NAVIGATION BAR
+       ========================================================================== */
+    .fab-quick-btn {
+      position: absolute;
+      bottom: 74px;
+      right: 22px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+      color: #fff;
+      border: none;
+      box-shadow: 0 8px 24px rgba(13, 148, 136, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 30;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .fab-quick-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 30px rgba(13, 148, 136, 0.55);
+    }
+
+    .fab-quick-btn:active {
+      transform: scale(0.92);
+    }
+
+    .app-bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 10px 12px;
+      z-index: 25;
+    }
+
+    .nav-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 60px;
+    }
+
+    .nav-tab-btn.active {
+      color: var(--teal-600);
+    }
+
+    .nav-tab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* ==========================================================================
+       10. SPEED-INPUT BOTTOM SHEET MODAL (高保真半屏秒记抽屉)
+       ========================================================================== */
+    .sheet-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sheet-backdrop.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .bottom-sheet-dialog {
+      width: 100%;
+      max-height: 85%;
+      background: var(--surface-white);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: 16px 20px 28px;
+      box-shadow: var(--shadow-modal);
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 1, 0.23, 1);
+    }
+
+    .sheet-backdrop.show .bottom-sheet-dialog {
+      transform: translateY(0);
+    }
+
+    .sheet-pull-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--slate-300);
+      border-radius: var(--radius-full);
+      margin: 0 auto 12px;
+    }
+
+    .sheet-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .sheet-title-text {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--slate-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sheet-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--slate-100);
+      border: none;
+      font-size: 14px;
+      color: var(--slate-500);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 6 大快捷分类选择网格 */
+    .sheet-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .cat-pill-btn {
+      background: var(--slate-50);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-pill-btn.active {
+      border-color: var(--teal-600);
+      background: var(--teal-50);
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
+    }
+
+    .cat-pill-icon {
+      font-size: 20px;
+    }
+
+    .cat-pill-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate-700);
+    }
+
+    .cat-pill-btn.active .cat-pill-label {
+      color: var(--teal-700);
+    }
+
+    /* 专项表单区 */
+    .form-pane {
+      display: none;
+    }
+    .form-pane.active {
+      display: block;
+    }
+
+    /* 布里斯托 7 级图形化卡片选择器 */
+    .bristol-scroll-cards {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 4px 2px 12px;
+      scrollbar-width: none;
+    }
+    .bristol-scroll-cards::-webkit-scrollbar { display: none; }
+
+    .bristol-card {
+      flex-shrink: 0;
+      width: 130px;
+      background: var(--slate-50);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bristol-card:hover { border-color: var(--teal-500); }
+    .bristol-card.selected {
+      border-color: var(--teal-600);
+      background: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .bristol-img-box {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .bristol-type-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-800);
+      margin-bottom: 2px;
+    }
+
+    .bristol-type-desc {
+      font-size: 10px;
+      color: var(--slate-500);
+      line-height: 1.3;
+    }
+
+    /* 色相取色板 */
+    .color-swatches-row {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+
+    .swatch-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-subtle);
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--slate-700);
+    }
+
+    .swatch-btn.selected {
+      border-color: var(--teal-600);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .swatch-color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    /* 快捷容量胶囊 */
+    .capsule-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .capsule-item {
+      flex: 1;
+      background: var(--slate-100);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 0;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-700);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .capsule-item.selected {
+      background: var(--teal-600);
+      color: #fff;
+      border-color: var(--teal-600);
+    }
+
+    /* 刻度微调器 */
+    .stepper-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      background: var(--slate-50);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stepper-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--slate-700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stepper-btn:active {
+      transform: scale(0.92);
+    }
+
+    .stepper-val-disp {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--slate-900);
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .stepper-val-disp small {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-500);
+    }
+
+    /* 用药防呆选择器 */
+    .med-select-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .med-card-option {
+      background: var(--slate-50);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .med-card-option.selected {
+      border-color: var(--indigo-600);
+      background: var(--indigo-50);
+    }
+
+    .med-card-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-bottom: 2px;
+    }
+
+    .med-card-rule {
+      font-size: 10px;
+      color: var(--indigo-600);
+      font-weight: 600;
+    }
+
+    .safety-warning-banner {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #92400E;
+      line-height: 1.5;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* 确认提交大按钮 */
+    .submit-primary-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 14px 0;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(13, 148, 136, 0.35);
+      transition: all 0.2s;
+    }
+
+    .submit-primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* ==========================================================================
+       11. DOCTOR APPOINTMENT SUMMARY MODAL (儿科就诊交接长单)
+       ========================================================================== */
+    .doctor-modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .doctor-modal-backdrop.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .doctor-sheet-content {
+      width: 100%;
+      max-height: 90%;
+      background: #FFFFFF;
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-modal);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .doc-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #EFF6FF;
+      color: #2563EB;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      margin-bottom: 8px;
+    }
+
+    .doc-main-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--slate-900);
+      margin-bottom: 4px;
+    }
+
+    .doc-meta-info {
+      font-size: 11px;
+      color: var(--slate-500);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .doc-section-block {
+      margin-bottom: 14px;
+    }
+
+    .doc-section-h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--teal-700);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .doc-text-card {
+      background: var(--slate-50);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--slate-700);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .doc-action-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .doc-btn-export {
+      flex: 2;
+      background: var(--teal-600);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .doc-btn-back {
+      flex: 1;
+      background: var(--slate-100);
+      color: var(--slate-700);
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       12. MEMBER SETTINGS VIEW (专属 6 项配置与模式管理)
+       ========================================================================== */
+    .settings-subpage {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .settings-subpage.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .settings-banner {
+      background: linear-gradient(135deg, var(--teal-700), var(--teal-600));
+      border-radius: var(--radius-xl);
+      padding: 18px;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+    }
+
+    .settings-card-group {
+      background: var(--surface-white);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .slots-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .slot-chip-box {
+      background: var(--slate-50);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate-700);
+      position: relative;
+    }
+
+    .slot-chip-remove {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--rose-500);
+      color: #fff;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .ios-switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--slate-100);
+    }
+
+    .ios-switch-row:last-child {
+      border-bottom: none;
+    }
+
+    /* iOS Toggle Switch */
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch-toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #CBD5E1;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .toggle-slider { background-color: var(--teal-600); }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  </style>
+</head>
+<body>
+
+<div class="workspace-wrapper">
+
+  <!-- =========================================================================
+       LEFT SIDE: PRODUCT DESIGN & INTERACTION WALKTHROUGH
+       ========================================================================= -->
+  <aside class="design-console">
+    <div class="brand-badge">✨ 医疗级暖愈美学 · UI/UX 重新定义</div>
+    <h1 class="console-title">🌿 安康记 AnkangCare</h1>
+    <p class="console-subtitle">
+      全家庭健康数据协同与急慢性病程监护系统。聚焦<b>婴幼儿精细护理</b>、<b>儿童感冒发热病程闭环</b>与<b>长辈慢病管理</b>。
+    </p>
+
+    <div class="scenario-picker-header">⚡ 核心体验场景切换 (点击联动右侧手机)</div>
+    <div class="scenario-btn-list">
+      <div class="scenario-card-btn active" id="btn-scen-baby" onclick="setAppMember('baby')">
+        <div class="scenario-icon">👶</div>
+        <div class="scenario-info">
+          <h4>安安 (8个月) <span class="tag tag-fever">🤒 感冒发热监护期</span></h4>
+          <p>体温双轴走势、退热药安全倒计时罗盘、布里斯托排便与一键儿科就诊单。</p>
+        </div>
+      </div>
+
+      <div class="scenario-card-btn" id="btn-scen-grandpa" onclick="setAppMember('grandpa')">
+        <div class="scenario-icon">👴</div>
+        <div class="scenario-info">
+          <h4>张大爷 (68岁) <span class="tag tag-elder">🧪 尿酸/慢病管理</span></h4>
+          <p>尿酸波动走势、420警戒线对比、血压心率打卡与高嘌呤禁忌提示。</p>
+        </div>
+      </div>
+
+      <div class="scenario-card-btn" id="btn-scen-mom" onclick="setAppMember('mom')">
+        <div class="scenario-icon">👩</div>
+        <div class="scenario-info">
+          <h4>林女士 (我) <span class="tag tag-baby">🌸 全家健康中枢</span></h4>
+          <p>水分摄入、睡眠管理、生理周期及全家协同记录通知流。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="design-spec-box">
+      <h5>💡 产品经理与交互设计核心思考：</h5>
+      • <b>智能情境变身</b>：普通状态呈现简约健康看板；开启“生病模式”首页立即升级为红橙监护看板。<br>
+      • <b>儿童退热药防呆安全罗盘</b>：4-6小时最小间隔动态倒计时 + 24小时频次防超量拦截，杜绝夜间慌乱误服。<br>
+      • <b>布里斯托大便 7 级卡片</b>：图谱化微拟物选择，直观标记大便性状与颜色。<br>
+      • <b>儿科门诊交接单</b>：化解家长就医时的忘事慌乱，30秒向医生呈递精准数据。
+    </div>
+  </aside>
+
+
+  <!-- =========================================================================
+       RIGHT SIDE: ANDROID FLAGSHIP PHONE SIMULATION
+       ========================================================================= -->
+  <main class="device-viewport">
+    <div class="device-screen">
+
+      <!-- Android Modern Status Bar -->
+      <div class="status-bar">
+        <span>09:41</span>
+        <div class="camera-cutout"></div>
+        <div class="status-icons">
+          <span>5G</span>
+          <span>98%</span>
+        </div>
+      </div>
+
+      <!-- Main Scrollable App Container -->
+      <div class="app-scroll-body" id="appScrollBody">
+
+        <!-- 1. Top Brand Header & Family Synced Indicator -->
+        <header class="top-brand-bar">
+          <div class="app-logo-area">
+            <div class="logo-mark">安</div>
+            <span class="app-title">安康记</span>
+          </div>
+          <div class="header-quick-actions">
+            <div class="sync-chip" title="家庭成员协同正常">
+              <span class="sync-pulse"></span>
+              <span>全家协同中</span>
+            </div>
+            <div class="icon-circle-btn" onclick="toggleSettingsPage()" title="成员个性化设置">⚙️</div>
+          </div>
+        </header>
+
+        <!-- 2. Family Carousel (家庭成员快捷切换轨) -->
+        <div class="family-carousel-wrapper" id="familyCarousel">
+          <!-- Baby -->
+          <div class="member-chip active fever-glow" id="chip-baby" onclick="setAppMember('baby')">
+            <div class="member-avatar-box">
+              👶
+              <span class="member-badge-dot badge-red"></span>
+            </div>
+            <div class="member-text-group">
+              <span class="name">安安 (次子)</span>
+              <span class="state-label">🤒 发热 38.5℃</span>
+            </div>
+          </div>
+
+          <!-- Grandpa -->
+          <div class="member-chip" id="chip-grandpa" onclick="setAppMember('grandpa')">
+            <div class="member-avatar-box">
+              👴
+              <span class="member-badge-dot badge-blue"></span>
+            </div>
+            <div class="member-text-group">
+              <span class="name">张大爷 (爷爷)</span>
+              <span class="state-label">🧪 尿酸 485 需控</span>
+            </div>
+          </div>
+
+          <!-- Mom -->
+          <div class="member-chip" id="chip-mom" onclick="setAppMember('mom')">
+            <div class="member-avatar-box">
+              👩
+            </div>
+            <div class="member-text-group">
+              <span class="name">林女士 (我)</span>
+              <span class="state-label">🌿 健康日常</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW A: HOME MAIN DASHBOARD
+             ========================================== -->
+        <div id="mainDashboardView">
+
+          <!-- 3.1 PEDIATRIC FEVER CARE BOARD (儿童生病模式动态置顶看板) -->
+          <section class="fever-care-board" id="babyFeverSection">
+            <div class="fever-board-banner">
+              <span class="fever-tag-pill">⚠️ 感冒发热监护 · 第 2 天</span>
+              <button class="doctor-order-btn" onclick="openDoctorModal()">儿科交接长单 ➔</button>
+            </div>
+
+            <!-- 核心数据：当前体温 + 退热药安全倒计时罗盘 -->
+            <div class="fever-hero-grid">
+              <!-- Tile 1: 当前体温 -->
+              <div class="hero-metric-tile">
+                <div class="hero-tile-label">
+                  <span>当前体温 (腋温)</span>
+                  <span>🌡️</span>
+                </div>
+                <div class="hero-tile-val" id="disp-temp-val">38.5<small>℃</small></div>
+                <div class="hero-tile-status">中度发热 · 观察精神</div>
+              </div>
+
+              <!-- Tile 2: 退热药安全罗盘 -->
+              <div class="med-safety-compass">
+                <div class="compass-title">
+                  <span>退热药间隔防呆</span>
+                  <span>🛡️</span>
+                </div>
+                <div class="compass-dial-wrap">
+                  <svg class="dial-circle-svg" viewBox="0 0 36 36">
+                    <path class="dial-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="dial-progress" id="compassProgressPath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <text class="dial-center-text" x="18" y="18">安全</text>
+                  </svg>
+                  <div class="compass-info">
+                    <span class="compass-info-state">可按需给药</span>
+                    <span class="compass-info-sub">距上次泰诺林 4.5h</span>
+                  </div>
+                </div>
+                <div class="compass-footer-rule">近24h已服: 2次 (上限4次)</div>
+              </div>
+            </div>
+
+            <!-- 双轴体温与用药走势图 -->
+            <div class="chart-card-box">
+              <div class="chart-header">
+                <span class="chart-title">📈 24小时体温起伏与用药时间轴</span>
+                <div class="chart-legend">
+                  <span><span class="legend-dot" style="background:var(--rose-500);"></span> 体温</span>
+                  <span><span class="legend-dot" style="background:var(--indigo-600);"></span> 服退烧药</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="feverChartCanvas" width="350" height="130"></canvas>
+              </div>
+              <div class="chart-footer-caption">
+                <span>最高体温: 39.1℃ (昨日19:15)</span>
+                <span>警戒线: 38.5℃</span>
+              </div>
+            </div>
+
+            <!-- 伴随症状标签流 -->
+            <div class="symptom-chips-row">
+              <div class="symptom-pill active-warn">🤧 流清涕</div>
+              <div class="symptom-pill active-warn">🗣️ 偶发干咳</div>
+              <div class="symptom-pill">😊 退烧后精神良好</div>
+              <div class="symptom-pill">🥣 食欲轻度下降</div>
+            </div>
+          </section>
+
+          <!-- 3.2 ELDER CARE BOARD (老人慢病与高尿酸看板 - 爷爷专属) -->
+          <section class="elder-care-board" id="elderUricSection" style="display: none;">
+            <div class="elder-board-banner">
+              <span class="elder-tag-pill">🧪 尿酸与代谢慢病看板</span>
+              <span style="font-size:11px;color:var(--indigo-600);font-weight:700;">达标线: ≤420 μmol/L</span>
+            </div>
+
+            <div class="fever-hero-grid">
+              <div class="hero-metric-tile" style="border-color:#C7D2FE;">
+                <div class="hero-tile-label">
+                  <span>今晨空腹尿酸</span>
+                  <span>🧪</span>
+                </div>
+                <div class="hero-tile-val" style="color:#C2410C;">485<small>μmol/L</small></div>
+                <div class="hero-tile-status" style="color:#C2410C;">偏高 · 警戒420</div>
+              </div>
+
+              <div class="hero-metric-tile" style="border-color:#C7D2FE;">
+                <div class="hero-tile-label">
+                  <span>晨起血压与脉搏</span>
+                  <span>❤️</span>
+                </div>
+                <div class="hero-tile-val" style="color:var(--indigo-600);">126/80<small>mmHg</small></div>
+                <div class="hero-tile-status" style="color:var(--emerald-600);">正常达标 · 脉搏72</div>
+              </div>
+            </div>
+
+            <!-- 尿酸走势图 -->
+            <div class="chart-card-box">
+              <div class="chart-header">
+                <span class="chart-title">📊 近7天尿酸降酸走势</span>
+                <span style="font-size:10px;color:var(--emerald-600);font-weight:700;">降酸药非布司他打卡中</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="uricChartCanvas" width="350" height="130"></canvas>
+              </div>
+            </div>
+
+            <div class="purine-tips-box">
+              <span>⚠️ 饮食禁忌提醒：今日尿酸偏高，忌浓肉汤、海鲜与啤酒；建议温开水摄入达标 2000ml。</span>
+            </div>
+          </section>
+
+
+          <!-- 4. DAILY 4/6 METRICS CARDS (日常高频卡片) -->
+          <div class="section-headline">
+            <h3><span>⚡</span> 今日高频健康数据</h3>
+            <span class="more-link" onclick="openQuickSheet('all')">记全部指标 ➔</span>
+          </div>
+
+          <div class="metric-cards-grid" id="metricsGridContainer">
+            <!-- Metric 1: 奶量 / 饮水 -->
+            <div class="metric-item-card" onclick="openQuickSheet('milk')">
+              <div class="metric-item-header">
+                <span class="metric-item-title" id="card-m1-title">今日总奶量</span>
+                <div class="metric-item-icon icon-milk" id="card-m1-icon">🍼</div>
+              </div>
+              <div class="metric-main-value" id="card-m1-val">580<small>ml</small></div>
+              <span class="metric-sub-badge badge-soft-warn" id="card-m1-sub">完成 72% · 距上次2h</span>
+            </div>
+
+            <!-- Metric 2: 大便 -->
+            <div class="metric-item-card" onclick="openQuickSheet('poop')">
+              <div class="metric-item-header">
+                <span class="metric-item-title">今日便便</span>
+                <div class="metric-item-icon icon-poop">💩</div>
+              </div>
+              <div class="metric-main-value" id="card-m2-val">2<small>次</small></div>
+              <span class="metric-sub-badge badge-soft-green">4型软便 · 金黄色</span>
+            </div>
+
+            <!-- Metric 3: 体温/血压 -->
+            <div class="metric-item-card" onclick="openQuickSheet('temp')">
+              <div class="metric-item-header">
+                <span class="metric-item-title" id="card-m3-title">体温读数</span>
+                <div class="metric-item-icon icon-temp" id="card-m3-icon">🌡️</div>
+              </div>
+              <div class="metric-main-value" id="card-m3-val" style="color:var(--rose-600);">38.5<small>℃</small></div>
+              <span class="metric-sub-badge badge-soft-rose" id="card-m3-sub">发热监测中</span>
+            </div>
+
+            <!-- Metric 4: 辅食/用药/水 -->
+            <div class="metric-item-card" onclick="openQuickSheet('med')">
+              <div class="metric-item-header">
+                <span class="metric-item-title" id="card-m4-title">今日用药</span>
+                <div class="metric-item-icon icon-bp" id="card-m4-icon">💊</div>
+              </div>
+              <div class="metric-main-value" id="card-m4-val">2<small>次已服</small></div>
+              <span class="metric-sub-badge badge-soft-blue" id="card-m4-sub">泰诺林 3.5ml</span>
+            </div>
+          </div>
+
+
+          <!-- 5. REAL-TIME FAMILY TIMELINE STREAM (家庭流水时间线) -->
+          <section class="timeline-container">
+            <div class="timeline-header-bar">
+              <span class="timeline-title"><span>🕒</span> 今日流水记录</span>
+              <div class="timeline-collaborators">3 人协同在线</div>
+            </div>
+
+            <div class="timeline-list" id="timelineListElement">
+              <!-- Item 1: Temp -->
+              <div class="timeline-entry">
+                <div class="timeline-entry-icon icon-border-red">🌡️</div>
+                <div class="timeline-content-card">
+                  <div class="timeline-card-top">
+                    <span class="timeline-card-title">测得体温 38.5 ℃ (腋温)</span>
+                    <span class="timeline-time-str">09:15</span>
+                  </div>
+                  <p class="timeline-card-desc">体温较晨起略升，额头微烫，伴随流清涕，精神尚可。</p>
+                  <div class="timeline-author-tag">👤 妈妈 林女士 记录</div>
+                </div>
+              </div>
+
+              <!-- Item 2: Milk -->
+              <div class="timeline-entry">
+                <div class="timeline-entry-icon icon-border-amber">🍼</div>
+                <div class="timeline-content-card">
+                  <div class="timeline-card-top">
+                    <span class="timeline-card-title">配方奶 160 ml</span>
+                    <span class="timeline-time-str">08:00</span>
+                  </div>
+                  <p class="timeline-card-desc">晨起顺利喝完，无呛奶，补充水分良好。</p>
+                  <div class="timeline-author-tag">👤 奶奶 记录</div>
+                </div>
+              </div>
+
+              <!-- Item 3: Poop -->
+              <div class="timeline-entry">
+                <div class="timeline-entry-icon icon-border-green">💩</div>
+                <div class="timeline-content-card">
+                  <div class="timeline-card-top">
+                    <span class="timeline-card-title">排便 1次 (布里斯托4型)</span>
+                    <span class="timeline-time-str">07:20</span>
+                  </div>
+                  <p class="timeline-card-desc">香蕉软便，金黄色，无明显奶瓣及血丝。</p>
+                  <div class="timeline-author-tag">👤 妈妈 林女士 记录</div>
+                </div>
+              </div>
+
+              <!-- Item 4: Med (泰诺林) -->
+              <div class="timeline-entry">
+                <div class="timeline-entry-icon icon-border-blue">💊</div>
+                <div class="timeline-content-card">
+                  <div class="timeline-card-top">
+                    <span class="timeline-card-title">服用对乙酰氨基酚 3.5 ml</span>
+                    <span class="timeline-time-str">04:45</span>
+                  </div>
+                  <p class="timeline-card-desc">凌晨高烧 38.9℃ 哭闹，服药后约 45 分钟出汗退热至 37.4℃。</p>
+                  <div class="timeline-author-tag">👤 爸爸 记录</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+        <!-- END VIEW A -->
+
+
+        <!-- ==========================================
+             VIEW B: MEMBER SETTINGS VIEW
+             ========================================== -->
+        <div class="settings-subpage" id="memberSettingsView">
+          <div class="settings-banner">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h2 style="font-size:17px;font-weight:800;">⚙️ 家人专属配置</h2>
+              <span style="font-size:12px;background:rgba(255,255,255,0.25);padding:3px 10px;border-radius:12px;cursor:pointer;" onclick="toggleSettingsPage()">完成 ✕</span>
+            </div>
+            <p style="font-size:11px;opacity:0.9;margin-top:4px;">针对每位成员自由定制首屏专属 6 项与专病模式</p>
+          </div>
+
+          <div class="settings-card-group">
+            <h4 style="font-size:13px;font-weight:800;color:var(--slate-800);margin-bottom:8px;">🎯 当前配置成员</h4>
+            <div style="font-size:12px;color:var(--slate-600);line-height:1.7;">
+              • <b>成员身份</b>：安安 (次子 · 8个月)<br>
+              • <b>过敏档案</b>：鸡蛋清轻度湿疹<br>
+              • <b>病程模式</b>：感冒发烧监护模式 (生效中)
+            </div>
+          </div>
+
+          <div class="settings-card-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--slate-800);">⚡ 首屏 6 项专属快捷位</h4>
+              <span style="font-size:11px;color:var(--teal-600);font-weight:700;">已选 6/6</span>
+            </div>
+            <div class="slots-grid-6">
+              <div class="slot-chip-box">🍼 记奶量 <span class="slot-chip-remove">✕</span></div>
+              <div class="slot-chip-box">💩 记便便 <span class="slot-chip-remove">✕</span></div>
+              <div class="slot-chip-box">🌡️ 记体温 <span class="slot-chip-remove">✕</span></div>
+              <div class="slot-chip-box">🥣 记辅食 <span class="slot-chip-remove">✕</span></div>
+              <div class="slot-chip-box">💊 记用药 <span class="slot-chip-remove">✕</span></div>
+              <div class="slot-chip-box">😴 记睡眠 <span class="slot-chip-remove">✕</span></div>
+            </div>
+          </div>
+
+          <div class="settings-card-group">
+            <h4 style="font-size:13px;font-weight:800;color:var(--slate-800);margin-bottom:10px;">🏥 专病监护场景开关</h4>
+            <div class="ios-switch-row">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--slate-900);">发热与急性病程模式</div>
+                <div style="font-size:10px;color:var(--slate-500);">首屏置顶双轴走势与退热药安全倒计时</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" checked id="toggleFeverMode" onchange="toggleFeverCareSwitch(this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ios-switch-row">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--slate-900);">长辈关怀大字模式</div>
+                <div style="font-size:10px;color:var(--slate-500);">针对老年人放大文字与按键热区</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="toggleElderMode">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <button class="submit-primary-btn" onclick="toggleSettingsPage()">保存配置并同步给全家</button>
+        </div>
+        <!-- END VIEW B -->
+
+      </div>
+
+      <!-- Floating Action Button (FAB) -->
+      <button class="fab-quick-btn" onclick="openQuickSheet('default')" title="极速记一条">+</button>
+
+      <!-- Bottom Navigation Bar -->
+      <nav class="app-bottom-nav">
+        <button class="nav-tab-btn active" onclick="navToTab('home')">
+          <span class="nav-tab-icon">🏠</span>
+          <span>首页</span>
+        </button>
+        <button class="nav-tab-btn" onclick="openDoctorModal()">
+          <span class="nav-tab-icon">📋</span>
+          <span>就诊单</span>
+        </button>
+        <button class="nav-tab-btn" onclick="openQuickSheet('all')">
+          <span class="nav-tab-icon">➕</span>
+          <span>记一笔</span>
+        </button>
+        <button class="nav-tab-btn" onclick="toggleSettingsPage()">
+          <span class="nav-tab-icon">⚙️</span>
+          <span>设置</span>
+        </button>
+      </nav>
+
+
+      <!-- =====================================================================
+           BOTTOM SHEET MODAL: SPEED-INPUT (极速半屏录入抽屉)
+           ===================================================================== -->
+      <div class="sheet-backdrop" id="quickSheetBackdrop">
+        <div class="bottom-sheet-dialog">
+          <div class="sheet-pull-handle"></div>
+          <div class="sheet-header-row">
+            <span class="sheet-title-text">
+              <span>⚡ 记录一条健康数据</span>
+            </span>
+            <button class="sheet-close-btn" onclick="closeQuickSheet()">✕</button>
+          </div>
+
+          <!-- 6大分类即时切换 -->
+          <div class="sheet-cat-grid">
+            <div class="cat-pill-btn active" id="cat-btn-milk" onclick="switchFormCat('milk')">
+              <span class="cat-pill-icon">🍼</span>
+              <span class="cat-pill-label">奶量/喂养</span>
+            </div>
+            <div class="cat-pill-btn" id="cat-btn-poop" onclick="switchFormCat('poop')">
+              <span class="cat-pill-icon">💩</span>
+              <span class="cat-pill-label">布里斯托排便</span>
+            </div>
+            <div class="cat-pill-btn" id="cat-btn-temp" onclick="switchFormCat('temp')">
+              <span class="cat-pill-icon">🌡️</span>
+              <span class="cat-pill-label">测体温</span>
+            </div>
+            <div class="cat-pill-btn" id="cat-btn-med" onclick="switchFormCat('med')">
+              <span class="cat-pill-icon">💊</span>
+              <span class="cat-pill-label">记用药</span>
+            </div>
+            <div class="cat-pill-btn" id="cat-btn-uric" onclick="switchFormCat('uric')">
+              <span class="cat-pill-icon">🧪</span>
+              <span class="cat-pill-label">测尿酸/慢病</span>
+            </div>
+            <div class="cat-pill-btn" id="cat-btn-diet" onclick="switchFormCat('diet')">
+              <span class="cat-pill-icon">🥣</span>
+              <span class="cat-pill-label">辅食/饮食</span>
+            </div>
+          </div>
+
+          <!-- FORM PANE 1: MILK -->
+          <div class="form-pane active" id="form-milk">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;">常用容量 (点击秒选)：</div>
+            <div class="capsule-group">
+              <div class="capsule-item" onclick="setMilkVolume(90)">90ml</div>
+              <div class="capsule-item" onclick="setMilkVolume(120)">120ml</div>
+              <div class="capsule-item selected" onclick="setMilkVolume(150)">150ml</div>
+              <div class="capsule-item" onclick="setMilkVolume(180)">180ml</div>
+              <div class="capsule-item" onclick="setMilkVolume(210)">210ml</div>
+            </div>
+
+            <div class="stepper-control">
+              <div class="stepper-btn" onclick="stepMilk(-10)">－</div>
+              <div class="stepper-val-disp"><span id="stepperMilkVal">150</span><small>ml</small></div>
+              <div class="stepper-btn" onclick="stepMilk(+10)">＋</div>
+            </div>
+          </div>
+
+          <!-- FORM PANE 2: POOP (布里斯托图形化) -->
+          <div class="form-pane" id="form-poop">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:6px;">布里斯托大便性状 (左右滑动选择)：</div>
+            <div class="bristol-scroll-cards">
+              <div class="bristol-card" onclick="selectBristol(this, '1型-羊粪球')">
+                <div class="bristol-img-box">🌰</div>
+                <div class="bristol-type-name">1型 · 羊粪球</div>
+                <div class="bristol-type-desc">颗颗坚硬排便费力</div>
+              </div>
+              <div class="bristol-card" onclick="selectBristol(this, '2型-凸凹香肠')">
+                <div class="bristol-img-box">🥖</div>
+                <div class="bristol-type-name">2型 · 凹凸块状</div>
+                <div class="bristol-type-desc">干硬香肠状轻度便秘</div>
+              </div>
+              <div class="bristol-card selected" onclick="selectBristol(this, '4型-滑软香蕉')">
+                <div class="bristol-img-box">🍌</div>
+                <div class="bristol-type-name">4型 · 滑软香蕉</div>
+                <div class="bristol-type-desc">理想黄金便光滑柔软</div>
+              </div>
+              <div class="bristol-card" onclick="selectBristol(this, '6型-糊状便')">
+                <div class="bristol-img-box">🥣</div>
+                <div class="bristol-type-name">6型 · 糊状便</div>
+                <div class="bristol-type-desc">边缘松散泥状微稀</div>
+              </div>
+              <div class="bristol-card" onclick="selectBristol(this, '7型-水样便')">
+                <div class="bristol-img-box">💧</div>
+                <div class="bristol-type-name">7型 · 水样便</div>
+                <div class="bristol-type-desc">蛋花汤水状腹泻预警</div>
+              </div>
+            </div>
+
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:6px;">便便颜色：</div>
+            <div class="color-swatches-row">
+              <div class="swatch-btn selected" onclick="selectColorSwatch(this, '金黄色')">
+                <div class="swatch-color-dot" style="background:#EAB308;"></div>
+                <span>金黄色</span>
+              </div>
+              <div class="swatch-btn" onclick="selectColorSwatch(this, '墨绿色')">
+                <div class="swatch-color-dot" style="background:#15803D;"></div>
+                <span>墨绿色</span>
+              </div>
+              <div class="swatch-btn" onclick="selectColorSwatch(this, '棕褐色')">
+                <div class="swatch-color-dot" style="background:#78350F;"></div>
+                <span>棕褐色</span>
+              </div>
+              <div class="swatch-btn" onclick="selectColorSwatch(this, '带血红')">
+                <div class="swatch-color-dot" style="background:#DC2626;"></div>
+                <span style="color:#DC2626;">带血红(警惕)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM PANE 3: TEMP -->
+          <div class="form-pane" id="form-temp">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;">测得体温 (℃)：</div>
+            <div class="stepper-control">
+              <div class="stepper-btn" onclick="stepTemp(-0.1)">－</div>
+              <div class="stepper-val-disp" style="color:var(--rose-600);"><span id="stepperTempVal">38.5</span><small>℃</small></div>
+              <div class="stepper-btn" onclick="stepTemp(+0.1)">＋</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
+              <div class="capsule-item selected" style="flex:1;">腋温</div>
+              <div class="capsule-item" style="flex:1;">耳温</div>
+              <div class="capsule-item" style="flex:1;">额温</div>
+            </div>
+          </div>
+
+          <!-- FORM PANE 4: MED -->
+          <div class="form-pane" id="form-med">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;">选择药物 (智能安全规则校验)：</div>
+            <div class="med-select-grid">
+              <div class="med-card-option selected" onclick="selectMedOption(this, '对乙酰氨基酚 (泰诺林)', 3.5)">
+                <div class="med-card-title">对乙酰氨基酚 (泰诺林)</div>
+                <div class="med-card-rule">安全间隔: 4-6小时</div>
+              </div>
+              <div class="med-card-option" onclick="selectMedOption(this, '布洛芬 (美林滴剂)', 3.0)">
+                <div class="med-card-title">布洛芬混悬液 (美林)</div>
+                <div class="med-card-rule">安全间隔: 6-8小时</div>
+              </div>
+            </div>
+
+            <div class="safety-warning-banner">
+              <span>🛡️ <b>防呆提醒</b>：当前距离上次泰诺林已过 4.5 小时，符合安全时间窗口；单日累计不可超过 4 次。</span>
+            </div>
+          </div>
+
+          <!-- FORM PANE 5: URIC -->
+          <div class="form-pane" id="form-uric">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;">指尖血尿酸值 (μmol/L)：</div>
+            <div class="stepper-control">
+              <div class="stepper-btn" onclick="stepUric(-5)">－</div>
+              <div class="stepper-val-disp" style="color:#C2410C;"><span id="stepperUricVal">485</span><small>μmol/L</small></div>
+              <div class="stepper-btn" onclick="stepUric(+5)">＋</div>
+            </div>
+            <div class="capsule-group">
+              <div class="capsule-item selected">晨起空腹</div>
+              <div class="capsule-item">餐后监测</div>
+              <div class="capsule-item">关节疼痛期</div>
+            </div>
+          </div>
+
+          <!-- FORM PANE 6: DIET -->
+          <div class="form-pane" id="form-diet">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;">辅食 / 饮食内容记录：</div>
+            <input type="text" id="dietInputContent" style="width:100%;padding:12px;border:1.5px solid var(--border-subtle);border-radius:var(--radius-md);font-size:13px;outline:none;margin-bottom:12px;" placeholder="例如：米粉 25g + 苹果泥大半勺">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+              <span class="symptom-pill" onclick="document.getElementById('dietInputContent').value='婴儿高铁米粉 30g'">米粉30g</span>
+              <span class="symptom-pill" onclick="document.getElementById('dietInputContent').value='温开水 100ml'">喝水100ml</span>
+              <span class="symptom-pill" onclick="document.getElementById('dietInputContent').value='清淡蔬菜瘦肉粥'">清淡蔬菜粥</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button class="submit-primary-btn" onclick="saveRecordAndAnimate()">保存并记录到时间线</button>
+        </div>
+      </div>
+
+
+      <!-- =====================================================================
+           DOCTOR SUMMARY MODAL (儿科门诊交接长单)
+           ===================================================================== -->
+      <div class="doctor-modal-backdrop" id="doctorModalBackdrop">
+        <div class="doctor-sheet-content">
+          <div class="doc-badge-pill">🏥 儿科面诊专用长单 (近48小时)</div>
+          <h2 class="doc-main-title">安安 (8个月·男) 门诊快速交接单</h2>
+          <div class="doc-meta-info">导出时间: 今日 09:30 | 监护人: 林女士 (138****8888)</div>
+
+          <!-- Block 1 -->
+          <div class="doc-section-block">
+            <div class="doc-section-h3"><span>🌡️</span> 1. 发热与体温病程</div>
+            <div class="doc-text-card">
+              • <b>起病时间</b>：昨日 02:00 开始发热，已持续约 31 小时。<br>
+              • <b>最高温度</b>：<b>39.1 ℃</b> (昨日 19:15 腋下测量)。<br>
+              • <b>热峰走势</b>：24小时内起伏 3 次，服药后体温能顺利降至 37.4℃ 左右。
+            </div>
+          </div>
+
+          <!-- Block 2 -->
+          <div class="doc-section-block">
+            <div class="doc-section-h3"><span>💊</span> 2. 退热药已给剂量 (防重复给药)</div>
+            <div class="doc-text-card">
+              • 昨天 04:30：对乙酰氨基酚 3.5ml<br>
+              • 昨天 12:40：布洛芬混悬滴剂 3.0ml<br>
+              • 昨天 19:15：对乙酰氨基酚 3.5ml<br>
+              • 今天 04:45：对乙酰氨基酚 3.5ml (已间隔 9.5 小时，无过量风险)
+            </div>
+          </div>
+
+          <!-- Block 3 -->
+          <div class="doc-section-block">
+            <div class="doc-section-h3"><span>👀</span> 3. 伴随体征与精神状态</div>
+            <div class="doc-text-card">
+              • 伴随清鼻涕，晨起轻微干咳 2-3 声，无抽搐惊厥，无皮疹。<br>
+              • 精神状态：退烧后能正常玩耍，发烧时哭闹黏人。<br>
+              • 饮食与摄入：配方奶日均约 700ml，饮温开水约 200ml。
+            </div>
+          </div>
+
+          <!-- Block 4 -->
+          <div class="doc-section-block">
+            <div class="doc-section-h3"><span>💩</span> 4. 排泄与过敏史</div>
+            <div class="doc-text-card">
+              • 大便：正常 2 次/日，黄金色布里斯托4型软便，无脓血黏液。<br>
+              • <b>已知过敏史</b>：无药物过敏史；鸡蛋清轻度迟发湿疹。
+            </div>
+          </div>
+
+          <div class="doc-action-btns">
+            <button class="doc-btn-export" onclick="alert('✅ 已生成医疗高清就诊长图并保存至相册！可在就诊时直接展示给医生。')">保存为就诊长图</button>
+            <button class="doc-btn-back" onclick="closeDoctorModal()">返回</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- =========================================================================
+     JAVASCRIPT LOGIC (交互与图表渲染)
+     ========================================================================= -->
+<script>
+  // Member state management
+  let activeMember = 'baby'; // 'baby' | 'grandpa' | 'mom'
+  let currentActiveCat = 'milk';
+  let selectedBristolType = '4型-滑软香蕉';
+  let selectedColor = '金黄色';
+  let selectedMedName = '对乙酰氨基酚 (泰诺林)';
+  let selectedMedDose = 3.5;
+
+  // Initialize
+  window.addEventListener('DOMContentLoaded', () => {
+    drawFeverChart();
+    drawUricChart();
+  });
+
+  // Switch Member
+  function setAppMember(memKey) {
+    activeMember = memKey;
+
+    // Update left scenario buttons
+    document.querySelectorAll('.scenario-card-btn').forEach(btn => btn.classList.remove('active'));
+    const scenBtn = document.getElementById(`btn-scen-${memKey}`);
+    if (scenBtn) scenBtn.classList.add('active');
+
+    // Update member chips
+    document.querySelectorAll('.member-chip').forEach(chip => chip.classList.remove('active'));
+    const chip = document.getElementById(`chip-${memKey}`);
+    if (chip) chip.classList.add('active');
+
+    // Toggle specific boards
+    const babyBoard = document.getElementById('babyFeverSection');
+    const elderBoard = document.getElementById('elderUricSection');
+
+    if (memKey === 'baby') {
+      babyBoard.style.display = 'block';
+      elderBoard.style.display = 'none';
+
+      // Update grid metrics for baby
+      document.getElementById('card-m1-title').innerText = '今日总奶量';
+      document.getElementById('card-m1-icon').innerText = '🍼';
+      document.getElementById('card-m1-val').innerHTML = '580<small>ml</small>';
+      document.getElementById('card-m1-sub').innerText = '完成 72% · 距上次2h';
+
+      document.getElementById('card-m3-title').innerText = '体温读数';
+      document.getElementById('card-m3-icon').innerText = '🌡️';
+      document.getElementById('card-m3-val').innerHTML = '38.5<small>℃</small>';
+      document.getElementById('card-m3-val').style.color = 'var(--rose-600)';
+
+      document.getElementById('card-m4-title').innerText = '今日用药';
+      document.getElementById('card-m4-icon').innerText = '💊';
+      document.getElementById('card-m4-val').innerHTML = '2<small>次已服</small>';
+      document.getElementById('card-m4-sub').innerText = '泰诺林 3.5ml';
+
+      setTimeout(drawFeverChart, 50);
+    } else if (memKey === 'grandpa') {
+      babyBoard.style.display = 'none';
+      elderBoard.style.display = 'block';
+
+      // Update grid metrics for elder
+      document.getElementById('card-m1-title').innerText = '今日饮水';
+      document.getElementById('card-m1-icon').innerText = '💧';
+      document.getElementById('card-m1-val').innerHTML = '1650<small>ml</small>';
+      document.getElementById('card-m1-sub').innerText = '达标 82% 促排泄';
+
+      document.getElementById('card-m3-title').innerText = '尿酸读数';
+      document.getElementById('card-m3-icon').innerText = '🧪';
+      document.getElementById('card-m3-val').innerHTML = '485<small>μmol/L</small>';
+      document.getElementById('card-m3-val').style.color = '#C2410C';
+
+      document.getElementById('card-m4-title').innerText = '慢病服药';
+      document.getElementById('card-m4-icon').innerText = '💊';
+      document.getElementById('card-m4-val').innerHTML = '2/3<small>已打卡</small>';
+      document.getElementById('card-m4-sub').innerText = '晚间非布司他待服';
+
+      setTimeout(drawUricChart, 50);
+    } else {
+      babyBoard.style.display = 'none';
+      elderBoard.style.display = 'none';
+
+      document.getElementById('card-m1-title').innerText = '今日饮水';
+      document.getElementById('card-m1-icon').innerText = '💧';
+      document.getElementById('card-m1-val').innerHTML = '1800<small>ml</small>';
+      document.getElementById('card-m1-sub').innerText = '目标达成';
+
+      document.getElementById('card-m3-title').innerText = '今日体重';
+      document.getElementById('card-m3-icon').innerText = '⚖️';
+      document.getElementById('card-m3-val').innerHTML = '51.4<small>kg</small>';
+      document.getElementById('card-m3-val').style.color = 'var(--teal-600)';
+    }
+  }
+
+  // Draw Fever Chart on Canvas
+  function drawFeverChart() {
+    const canvas = document.getElementById('feverChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines for 36.5, 37.5, 38.5, 39.5
+    const temps = [36.5, 37.5, 38.5, 39.5];
+    ctx.strokeStyle = '#F1F5F9';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '10px -apple-system, sans-serif';
+
+    temps.forEach(t => {
+      const y = h - ((t - 36.0) / 4.0) * (h - 26) - 13;
+      ctx.beginPath();
+      ctx.moveTo(35, y);
+      ctx.lineTo(w - 10, y);
+      ctx.stroke();
+      ctx.fillText(t.toFixed(1) + '°', 5, y + 3);
+    });
+
+    // 38.5℃ Alert line (dashed red)
+    const alertY = h - ((38.5 - 36.0) / 4.0) * (h - 26) - 13;
+    ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(35, alertY);
+    ctx.lineTo(w - 10, alertY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const data = [
+      { t: '12:00', val: 37.2, med: null },
+      { t: '16:00', val: 38.3, med: null },
+      { t: '19:15', val: 39.1, med: '泰诺林' },
+      { t: '22:00', val: 37.4, med: null },
+      { t: '02:00', val: 38.0, med: null },
+      { t: '04:45', val: 38.9, med: '泰诺林' },
+      { t: '09:15', val: 38.5, med: null }
+    ];
+
+    const stepX = (w - 60) / (data.length - 1);
+
+    // Draw Smooth Temp Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 2.5;
+
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw Points & Med Marks
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+
+      // Circle point
+      ctx.beginPath();
+      ctx.fillStyle = pt.val >= 38.5 ? '#F43F5E' : '#10B981';
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Medication flag if given
+      if (pt.med) {
+        ctx.fillStyle = '#6366F1';
+        ctx.beginPath();
+        ctx.arc(x, y - 12, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('💊', x - 4, y - 8);
+      }
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(pt.t, x - 12, h - 3);
+    });
+  }
+
+  // Draw Uric Acid Chart on Canvas
+  function drawUricChart() {
+    const canvas = document.getElementById('uricChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const values = [520, 505, 490, 510, 470, 495, 485];
+    const days = ['周一', '周二', '周三', '周四', '周五', '周六', '今天'];
+
+    // 420 达标线
+    const threshY = h - ((420 - 350) / 250) * (h - 26) - 13;
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(35, threshY);
+    ctx.lineTo(w - 10, threshY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#10B981';
+    ctx.font = '9px sans-serif';
+    ctx.fillText('达标线 420', 5, threshY + 3);
+
+    const stepX = (w - 60) / (values.length - 1);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 2.5;
+
+    values.forEach((v, idx) => {
+      const x = 45 + idx * stepX;
+      const y = h - ((v - 350) / 250) * (h - 26) - 13;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    values.forEach((v, idx) => {
+      const x = 45 + idx * stepX;
+      const y = h - ((v - 350) / 250) * (h - 26) - 13;
+
+      ctx.beginPath();
+      ctx.fillStyle = v > 420 ? '#C2410C' : '#10B981';
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748B';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(days[idx], x - 10, h - 3);
+    });
+  }
+
+  // Quick Bottom Sheet Handlers
+  function openQuickSheet(catKey) {
+    if (catKey && catKey !== 'all' && catKey !== 'default') {
+      switchFormCat(catKey);
+    }
+    const backdrop = document.getElementById('quickSheetBackdrop');
+    backdrop.classList.add('show');
+  }
+
+  function closeQuickSheet() {
+    const backdrop = document.getElementById('quickSheetBackdrop');
+    backdrop.classList.remove('show');
+  }
+
+  function switchFormCat(catKey) {
+    currentActiveCat = catKey;
+
+    // Toggle button styles
+    document.querySelectorAll('.cat-pill-btn').forEach(btn => btn.classList.remove('active'));
+    const targetBtn = document.getElementById(`cat-btn-${catKey}`);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    // Toggle form pane
+    document.querySelectorAll('.form-pane').forEach(p => p.classList.remove('active'));
+    const targetPane = document.getElementById(`form-${catKey}`);
+    if (targetPane) targetPane.classList.add('active');
+  }
+
+  // Form Interactions
+  let currentMilk = 150;
+  function setMilkVolume(v) {
+    currentMilk = v;
+    document.getElementById('stepperMilkVal').innerText = v;
+    document.querySelectorAll('.capsule-group .capsule-item').forEach(c => {
+      if (c.innerText === `${v}ml`) c.classList.add('selected');
+      else c.classList.remove('selected');
+    });
+  }
+
+  function stepMilk(delta) {
+    currentMilk = Math.max(10, currentMilk + delta);
+    document.getElementById('stepperMilkVal').innerText = currentMilk;
+  }
+
+  function selectBristol(el, type) {
+    document.querySelectorAll('.bristol-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedBristolType = type;
+  }
+
+  function selectColorSwatch(el, color) {
+    document.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedColor = color;
+  }
+
+  let currentTemp = 38.5;
+  function stepTemp(delta) {
+    currentTemp = parseFloat((currentTemp + delta).toFixed(1));
+    document.getElementById('stepperTempVal').innerText = currentTemp.toFixed(1);
+  }
+
+  let currentUric = 485;
+  function stepUric(delta) {
+    currentUric = currentUric + delta;
+    document.getElementById('stepperUricVal').innerText = currentUric;
+  }
+
+  function selectMedOption(el, name, dose) {
+    document.querySelectorAll('.med-card-option').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedMedName = name;
+    selectedMedDose = dose;
+  }
+
+  // Save Record to Timeline
+  function saveRecordAndAnimate() {
+    closeQuickSheet();
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    let icon = '📝';
+    let iconBorder = 'icon-border-green';
+    let title = '健康打卡';
+    let desc = '';
+
+    if (currentActiveCat === 'milk') {
+      icon = '🍼';
+      iconBorder = 'icon-border-amber';
+      title = `配方奶 ${currentMilk} ml`;
+      desc = `顺利摄入，精神状态平稳。`;
+      document.getElementById('card-m1-val').innerHTML = `${580 + currentMilk}<small>ml</small>`;
+    } else if (currentActiveCat === 'poop') {
+      icon = '💩';
+      iconBorder = 'icon-border-green';
+      title = `排便 1次 (${selectedBristolType})`;
+      desc = `颜色为${selectedColor}，大便性状已如实记录。`;
+      document.getElementById('card-m2-val').innerHTML = `3<small>次</small>`;
+    } else if (currentActiveCat === 'temp') {
+      icon = '🌡️';
+      iconBorder = 'icon-border-red';
+      title = `测得体温 ${currentTemp.toFixed(1)} ℃`;
+      desc = `测量部位：腋温。体温记录已更新走势图。`;
+      document.getElementById('disp-temp-val').innerHTML = `${currentTemp.toFixed(1)}<small>℃</small>`;
+      document.getElementById('card-m3-val').innerHTML = `${currentTemp.toFixed(1)}<small>℃</small>`;
+    } else if (currentActiveCat === 'med') {
+      icon = '💊';
+      iconBorder = 'icon-border-blue';
+      title = `服用 ${selectedMedName} ${selectedMedDose}ml`;
+      desc = `退热药已记录，安全给药倒计时已重置为 4-6 小时。`;
+    } else if (currentActiveCat === 'uric') {
+      icon = '🧪';
+      iconBorder = 'icon-border-blue';
+      title = `测指尖血尿酸 ${currentUric} μmol/L`;
+      desc = `晨起空腹监测，已记录饮食建议。`;
+    } else {
+      icon = '🥣';
+      title = '辅食摄入';
+      desc = document.getElementById('dietInputContent').value || '辅食记录完成';
+    }
+
+    // Insert new timeline item
+    const newItem = document.createElement('div');
+    newItem.className = 'timeline-entry';
+    newItem.innerHTML = `
+      <div class="timeline-entry-icon ${iconBorder}">${icon}</div>
+      <div class="timeline-content-card">
+        <div class="timeline-card-top">
+          <span class="timeline-card-title">${title}</span>
+          <span class="timeline-time-str">${timeStr}</span>
+        </div>
+        <p class="timeline-card-desc">${desc}</p>
+        <div class="timeline-author-tag">👤 刚刚记录 (实时已同步)</div>
+      </div>
+    `;
+
+    const list = document.getElementById('timelineListElement');
+    list.insertBefore(newItem, list.firstChild);
+  }
+
+  // Doctor Appointment Summary Modal
+  function openDoctorModal() {
+    document.getElementById('doctorModalBackdrop').classList.add('show');
+  }
+
+  function closeDoctorModal() {
+    document.getElementById('doctorModalBackdrop').classList.remove('show');
+  }
+
+  // Settings View Toggle
+  function toggleSettingsPage() {
+    const mainView = document.getElementById('mainDashboardView');
+    const settingsView = document.getElementById('memberSettingsView');
+
+    if (settingsView.style.display === 'block') {
+      settingsView.style.display = 'none';
+      mainView.style.display = 'block';
+    } else {
+      mainView.style.display = 'none';
+      settingsView.style.display = 'block';
+    }
+  }
+
+  function toggleFeverCareSwitch(checked) {
+    const babyBoard = document.getElementById('babyFeverSection');
+    if (activeMember === 'baby') {
+      babyBoard.style.display = checked ? 'block' : 'none';
+    }
+  }
+
+  function navToTab(tab) {
+    if (tab === 'home') {
+      document.getElementById('memberSettingsView').style.display = 'none';
+      document.getElementById('mainDashboardView').style.display = 'block';
+    }
+  }
+</script>
+
+</body>
+</html>

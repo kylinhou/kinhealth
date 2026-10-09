@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安康记 (AnkangCare) - 交互原型与产品功能设计总览大厅</title>
+  <style>
+    :root {
+      --teal-600: #0D9488;
+      --teal-700: #0F766E;
+      --teal-50: #F0FDFA;
+      --rose-500: #F43F5E;
+      --indigo-600: #4F46E5;
+      --amber-500: #F59E0B;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-800: #1E293B;
+      --slate-900: #0F172A;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #0B1120; color: #E2E8F0; min-height: 100vh; padding: 36px 20px; display: flex; justify-content: center; }
+    .portal-container { max-width: 1200px; width: 100%; }
+
+    /* Hero Header */
+    .hero-banner { text-align: center; margin-bottom: 36px; }
+    .brand-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(13,148,136,0.2); color: #2DD4BF; border: 1px solid rgba(45,212,191,0.3); padding: 5px 16px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+    .hero-title { font-size: 32px; font-weight: 900; color: #F8FAFC; letter-spacing: -0.5px; margin-bottom: 10px; }
+    .hero-desc { font-size: 15px; color: #94A3B8; max-width: 760px; margin: 0 auto; line-height: 1.7; }
+
+    /* Design Principles Banner */
+    .spec-principles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 36px; }
+    .principle-card { background: #1E293B; border: 1px solid #334155; border-radius: var(--radius-md); padding: 18px; }
+    .principle-card h4 { font-size: 14px; color: #38BDF8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .principle-card p { font-size: 12px; color: #94A3B8; line-height: 1.6; }
+
+    /* Page Navigation Matrix (6 Pages) */
+    .section-h2 { font-size: 18px; font-weight: 800; color: #F8FAFC; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .pages-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+    .page-card {
+      background: #1E293B;
+      border: 1.5px solid #334155;
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      color: inherit;
+    }
+    .page-card:hover {
+      border-color: #2DD4BF;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      background: #182234;
+    }
+
+    .page-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .page-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full); }
+    .badge-p1 { background: rgba(13,148,136,0.2); color: #2DD4BF; border: 1px solid rgba(45,212,191,0.3); }
+    .badge-p2 { background: rgba(244,63,94,0.2); color: #FDA4AF; border: 1px solid rgba(253,164,175,0.3); }
+    .badge-p3 { background: rgba(16,185,129,0.2); color: #6EE7B7; border: 1px solid rgba(110,231,183,0.3); }
+    .badge-p4 { background: rgba(59,130,246,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); }
+    .badge-p5 { background: rgba(79,70,229,0.2); color: #C7D2FE; border: 1px solid rgba(199,210,254,0.3); }
+    .badge-p6 { background: rgba(245,158,11,0.2); color: #FDE68A; border: 1px solid rgba(253,230,138,0.3); }
+
+    .page-title { font-size: 18px; font-weight: 800; color: #F8FAFC; margin-bottom: 8px; }
+    .page-desc { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 14px; }
+
+    .feature-points-list { background: #0F172A; border-radius: 12px; padding: 12px 14px; font-size: 12px; color: #CBD5E1; line-height: 1.7; margin-bottom: 16px; border: 1px solid #334155; }
+    .feature-points-list b { color: #38BDF8; }
+
+    .page-action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #0F172A; border: 1px solid #334155; color: #38BDF8; font-size: 13px; font-weight: 700; padding: 10px 0; border-radius: 12px; width: 100%; transition: all 0.2s; }
+    .page-card:hover .page-action-btn { background: var(--teal-600); color: #fff; border-color: var(--teal-600); }
+
+    /* Footer */
+    .portal-footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155; font-size: 12px; color: #64748B; }
+  </style>
+</head>
+<body>
+
+<div class="portal-container">
+  <!-- HERO BANNER -->
+  <header class="hero-banner">
+    <div class="brand-pill">✨ 专业产品经理 & 首席 UI/UX 设计方案</div>
+    <h1 class="hero-title">🌿 安康记 (AnkangCare) 产品交互原型总览大厅</h1>
+    <p class="hero-desc">
+      面向全家庭多生命周期的健康协同与专病监护系统。每个页面均提供<b>独立交互体验 Demo</b> 与<b>左侧详细产品需求/规则规格说明书</b>，点击即可沉浸式体验。
+    </p>
+  </header>
+
+  <!-- DESIGN PRINCIPLES GUIDELINES -->
+  <section class="spec-principles-grid">
+    <div class="principle-card">
+      <h4><span>🎨</span> 暖愈医疗极简美学</h4>
+      <p>告别粗糙的高饱和生硬拼接，以宁静松青（#0D9488）为主基调，配合 22px 舒适圆角与微弥散阴影，塑造现代旗舰质感。</p>
+    </div>
+    <div class="principle-card">
+      <h4><span>🛡️</span> 儿童急性病程防呆</h4>
+      <p>退热药（泰诺林 4-6h / 美林 6-8h）动态安全倒计时罗盘 + 24小时频次防超量拦截，从交互底层彻底消除夜间慌乱误服风险。</p>
+    </div>
+    <div class="principle-card">
+      <h4><span>⚡</span> 极速单手录入</h4>
+      <p>布里斯托 7 级大便微拟物卡通卡片、常用容量胶囊（90-210ml）、母乳亲喂秒表计时，实现 2-Tap 秒记。</p>
+    </div>
+  </section>
+
+  <!-- 6 CORE PAGES MATRIX -->
+  <h2 class="section-h2">📑 核心功能页面矩阵与交互体验入口</h2>
+  <div class="pages-grid">
+
+    <!-- PAGE 1 -->
+    <a href="page_1_home_dashboard.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p1">PAGE 01</span>
+          <span style="font-size:22px;">🏠</span>
+        </div>
+        <h3 class="page-title">首页大盘与场景感知看板</h3>
+        <p class="page-desc">
+          全家成员入口与自适应动态首屏。根据当前成员健康状态（婴儿感冒发热 vs 老人慢病 vs 健康日常）自动重构首屏形态。
+        </p>
+        <div class="feature-points-list">
+          • <b>多成员状态滑轨</b>：婴儿安安、张大爷、妈妈林女士自适应切换<br>
+          • <b>今日高频 4/6 卡片</b>：指标达标率与最近打卡时间<br>
+          • <b>家庭健康流水线</b>：多端协同打卡流水流转
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Page 1 Demo & 功能说明 ➔</div>
+    </a>
+
+    <!-- PAGE 2 -->
+    <a href="page_2_fever_med_tracker.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p2">PAGE 02 · 核心爆款</span>
+          <span style="font-size:22px;">🤒</span>
+        </div>
+        <h3 class="page-title">儿童感冒发热监护与安全用药看板</h3>
+        <p class="page-desc">
+          专门针对孩子感冒发烧痛点打造。双轴体温起伏曲线与给药标记点，配合智能退热药安全间隔倒计时罗盘。
+        </p>
+        <div class="feature-points-list">
+          • <b>安全罗盘倒计时</b>：泰诺林 4-6h / 美林 6-8h 防误服拦截<br>
+          • <b>双轴时间轴走势</b>：直观查看服药后降温与反弹时刻<br>
+          • <b>伴随体征快速点选</b>：咳嗽音、流涕、精神状态打卡
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Page 2 Demo & 功能说明 ➔</div>
+    </a>
+
+    <!-- PAGE 3 -->
+    <a href="page_3_speed_input.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p3">PAGE 03</span>
+          <span style="font-size:22px;">💩</span>
+        </div>
+        <h3 class="page-title">极速录入中心与布里斯托排便图谱</h3>
+        <p class="page-desc">
+          解决日常高频记录的枯燥与低效问题。将医学大便分类转化为可爱卡片，搭配奶量胶囊与亲喂计时器。
+        </p>
+        <div class="feature-points-list">
+          • <b>布里斯托 7 级图谱</b>：微拟物卡通卡片与色相危险色板<br>
+          • <b>喂奶双模式秒记</b>：常用胶囊（90/120/150ml）+ 亲喂秒表<br>
+          • <b>体温与尿酸步进器</b>：高精度大字调节
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Page 3 Demo & 功能说明 ➔</div>
+    </a>
+
+    <!-- PAGE 4 -->
+    <a href="page_4_doctor_summary.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p4">TAB 3 · 核心资产</span>
+          <span style="font-size:22px;">📁</span>
+        </div>
+        <h3 class="page-title">健康档案与数据资产中枢</h3>
+        <p class="page-desc">
+          收拢走势与资产：将宏观趋势折线、儿科问诊交接长单导出以及家庭常备小药箱/过敏红线，统一汇聚于「健康档案」。
+        </p>
+        <div class="feature-points-list">
+          • <b>📈 趋势与周报</b>：体温双轴走势、尿酸420警戒线、AI健康周报<br>
+          • <b>🏥 就诊病程单</b>：儿科交接长图（随时一键保存至相册）<br>
+          • <b>💊 药箱与过敏</b>：家庭备药剂量、安全复测倒计时、过敏红线
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Tab 3 健康档案 Demo ➔</div>
+    </a>
+
+    <!-- PAGE 5 -->
+    <a href="page_5_elder_uric_care.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p5">PAGE 05</span>
+          <span style="font-size:22px;">👴</span>
+        </div>
+        <h3 class="page-title">老人慢病管理与高尿酸/高嘌呤指南</h3>
+        <p class="page-desc">
+          专为老年长辈与痛风代谢管理设计。指尖血尿酸波动走势对齐 420 警戒线，附带红黄绿灯食物查询与大字关怀模式。
+        </p>
+        <div class="feature-points-list">
+          • <b>尿酸 7 天降酸走势</b>：420 μmol/L 警戒线与达标天数<br>
+          • <b>嘌呤红黄绿灯查询器</b>：海鲜、肉汤、蔬菜分类指导<br>
+          • <b>长辈大字模式开关</b>：字号放大 125%，按键热区舒适
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Page 5 Demo & 功能说明 ➔</div>
+    </a>
+
+    <!-- PAGE 6 -->
+    <a href="page_6_member_settings.html" class="page-card">
+      <div>
+        <div class="page-card-top">
+          <span class="page-badge badge-p6">PAGE 06 · 架构解耦</span>
+          <span style="font-size:22px;">🏠</span>
+        </div>
+        <h3 class="page-title">家庭空间档案中心与系统设置体系</h3>
+        <p class="page-desc">
+          重新理清产品底层架构：将「家庭成员档案（核心资产）」与「系统设备设置」彻底解耦，并构建一站式添加新家人向导。
+        </p>
+        <div class="feature-points-list">
+          • <b>➕ 3步添加家人向导</b>：角色预设 ➔ 生理档案/过敏 ➔ 智能预配<br>
+          • <b>家庭成员列表与协同</b>：多人卡片管理、微信邀请、主看护人设定<br>
+          • <b>独立系统与硬件设置</b>：复测闹钟、蓝牙体温/血压设备、数据导出
+        </div>
+      </div>
+      <div class="page-action-btn">进入体验 Page 6 架构重构 Demo ➔</div>
+    </a>
+
+  </div>
+
+  <footer class="portal-footer">
+    安康记 (AnkangCare) 产品与交互设计规范系统 · 遵循 Generative UI & Motion Design 体验标准
+  </footer>
+</div>
+
+</body>
+</html>

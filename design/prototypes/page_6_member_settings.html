@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P6: 家庭空间档案中心与系统设置 - 安康记 Demo & 功能说明</title>
+  <style>
+    :root {
+      --teal-600: #0D9488;
+      --teal-700: #0F766E;
+      --teal-50: #F0FDFA;
+      --teal-100: #CCFBF1;
+      --rose-500: #F43F5E;
+      --rose-50: #FFF1F2;
+      --indigo-600: #4F46E5;
+      --indigo-50: #EEF2FF;
+      --amber-500: #F59E0B;
+      --amber-50: #FFFBEB;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #0B1120; color: #E2E8F0; min-height: 100vh; padding: 24px; display: flex; justify-content: center; }
+    .layout-grid { display: flex; gap: 32px; max-width: 1360px; width: 100%; align-items: flex-start; }
+
+    /* LEFT: PM SPECIFICATION SHEET */
+    .pm-spec-panel {
+      flex: 1.1;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      color: #E2E8F0;
+    }
+    .badge-nav { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,158,11,0.2); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+    .pm-title { font-size: 22px; font-weight: 800; color: #F8FAFC; margin-bottom: 6px; }
+    .pm-subtitle { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 20px; }
+    .spec-section { background: #0F172A; border: 1px solid #334155; border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #CBD5E1; }
+    .spec-section h4 { color: #38BDF8; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .spec-section b { color: #F8FAFC; }
+    .link-portal { display: inline-flex; align-items: center; gap: 6px; color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 700; margin-top: 10px; }
+    .link-portal:hover { text-decoration: underline; }
+
+    /* RIGHT: MOBILE DEMO */
+    .phone-wrapper {
+      width: 410px;
+      height: 870px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 0 0 3px #334155, 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--slate-50);
+      border-radius: 38px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--slate-900);
+      position: relative;
+    }
+    .status-bar { height: 40px; padding: 10px 22px 0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--slate-700); }
+    .phone-content { flex: 1; overflow-y: auto; padding: 10px 16px 80px; scrollbar-width: none; }
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* Top Segmented Controls: 解耦「家庭成员」与「系统设置」 */
+    .seg-tabs-row {
+      display: flex;
+      background: var(--slate-200);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 14px;
+    }
+    .seg-tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--slate-600);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .seg-tab-btn.active {
+      background: #FFFFFF;
+      color: var(--teal-600);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    /* Family Overview Bar */
+    .fam-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #0F766E, #0D9488);
+      color: #FFFFFF;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .fam-title-group h3 { font-size: 14px; font-weight: 800; }
+    .fam-title-group p { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+    .btn-invite-pill {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+    }
+
+    /* Add Member Primary Button */
+    .btn-add-member {
+      width: 100%;
+      border: 1.5px dashed var(--teal-600);
+      background: var(--teal-50);
+      color: var(--teal-600);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-bottom: 14px;
+      transition: all 0.2s;
+    }
+    .btn-add-member:hover {
+      background: #CCFBF1;
+    }
+
+    /* Member Profile Cards */
+    .member-item-card {
+      background: #FFFFFF;
+      border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      position: relative;
+    }
+    .member-item-card.active-managing {
+      border-color: var(--teal-600);
+      box-shadow: 0 4px 14px rgba(13,148,136,0.12);
+    }
+    .mic-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .mic-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mic-avatar {
+      font-size: 26px;
+      width: 42px;
+      height: 42px;
+      background: var(--slate-100);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mic-names h4 { font-size: 13px; font-weight: 800; }
+    .mic-names p { font-size: 10px; color: var(--slate-500); margin-top: 1px; }
+    .mic-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+    .mb-fever { background: var(--rose-50); color: var(--rose-500); border: 1px solid #FECDD3; }
+    .mb-elder { background: var(--amber-50); color: #C2410C; border: 1px solid #FDE68A; }
+    .mb-normal { background: var(--teal-50); color: var(--teal-600); border: 1px solid var(--teal-100); }
+
+    .mic-info-list {
+      background: var(--slate-50);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--slate-700);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .mic-actions-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mic-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 8px;
+      border: 1px solid var(--slate-200);
+      background: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate-700);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .mic-btn:hover { border-color: var(--teal-600); color: var(--teal-600); }
+    .mic-btn.primary { background: var(--teal-600); color: #fff; border-color: var(--teal-600); }
+
+    /* Custom Slots Section */
+    .cfg-card { background: #fff; border-radius: var(--radius-lg); padding: 14px; border: 1.5px solid var(--slate-200); margin-bottom: 12px; }
+    .cfg-card-h { font-size: 12px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .slot-item { background: var(--slate-50); border: 1.5px solid var(--slate-200); border-radius: 10px; padding: 8px 4px; text-align: center; position: relative; font-size: 11px; font-weight: 800; }
+    .slot-del { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--rose-500); color: #fff; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .lib-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .lib-chip { background: #fff; border: 1px solid var(--slate-200); border-radius: 16px; padding: 4px 8px; font-size: 10px; font-weight: 600; color: var(--slate-700); cursor: pointer; }
+
+    /* Wizard Modal (添加新家人 3 步向导) */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      width: 100%;
+      background: #FFFFFF;
+      border-radius: 28px 28px 0 0;
+      padding: 20px 18px 30px;
+      max-height: 85%;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .wizard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .wizard-head h3 { font-size: 15px; font-weight: 900; }
+    .wizard-close { font-size: 18px; border: none; background: transparent; cursor: pointer; color: var(--slate-500); }
+
+    .role-pick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .role-pick-card {
+      border: 1.5px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-pick-card.active {
+      border-color: var(--teal-600);
+      background: var(--teal-50);
+    }
+    .role-pick-card span.icon { font-size: 22px; display: block; margin-bottom: 2px; }
+    .role-pick-card div.name { font-size: 11px; font-weight: 800; color: var(--slate-900); }
+    .role-pick-card div.sub { font-size: 9px; color: var(--slate-500); }
+
+    .wizard-label { font-size: 11px; font-weight: 800; color: var(--slate-700); margin: 8px 0 4px; }
+    .wizard-input {
+      width: 100%;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .allergy-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .a-tag {
+      border: 1px solid var(--slate-200);
+      background: var(--slate-50);
+      border-radius: 16px;
+      padding: 4px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--slate-700);
+      cursor: pointer;
+    }
+    .a-tag.active {
+      background: var(--rose-50);
+      border-color: var(--rose-500);
+      color: var(--rose-500);
+    }
+
+    /* System Settings Panel */
+    .setting-group { background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--slate-200); padding: 12px; margin-bottom: 10px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--slate-100); }
+    .setting-row:last-child { border-bottom: none; }
+    .sr-title { font-size: 12px; font-weight: 800; }
+    .sr-desc { font-size: 10px; color: var(--slate-500); margin-top: 1px; }
+
+    /* Bottom 4-Tab Navigation Bar */
+    .bottom-tab-bar {
+      height: 60px;
+      background: #FFFFFF;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 4px;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 50;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+    }
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--slate-500);
+      flex: 1;
+      padding: 4px 0;
+      transition: all 0.2s;
+    }
+    .tab-item.active {
+      color: var(--teal-600);
+      font-weight: 800;
+    }
+    .tab-item .tab-icon { font-size: 18px; line-height: 1; }
+    .tab-item .tab-label { font-size: 10px; font-weight: 700; }
+    .tab-item-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      flex: 1;
+      margin-top: -14px;
+    }
+    .fab-circle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-600), #0F766E);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(13,148,136,0.4);
+      transition: transform 0.2s;
+    }
+    .fab-circle:hover { transform: scale(1.06); }
+    .tab-item-center .tab-label { font-size: 10px; font-weight: 800; color: var(--teal-600); }
+
+    /* Toast */
+    .toast-box {
+      position: absolute;
+      bottom: 75px; left: 50%;
+      transform: translateX(-50%);
+      background: #0F172A;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .toast-box.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="layout-grid">
+  <!-- LEFT PANEL: PM DETAILED FEATURE SPECIFICATION -->
+  <aside class="pm-spec-panel">
+    <div class="badge-nav">📑 PAGE 6 / 6 · 架构解耦与家庭协同全景</div>
+    <h1 class="pm-title">家庭空间成员中心与系统设置体系</h1>
+    <p class="pm-subtitle">
+      重新理清产品信息架构：将<b>「家庭成员核心资产（Family Hub）」</b>与<b>「系统底层配置（System Settings）」</b>彻底解耦，并构建一站式<b>「➕ 3步添加家人向导」</b>。
+    </p>
+
+    <div class="spec-section">
+      <h4>💡 1. 为什么必须将“家庭成员”与“设置”彻底解耦？</h4>
+      • <b>主语归属原则</b>：在全家健康 App 中，所有数据（体温、奶量、尿酸、便便）都是依附于<b>特定成员</b>的从属属性，家人档案是<b>业务第一核心实体</b>，绝不能降格塞在普通设置的次级菜单里；<br>
+      • <b>双入口触达策略</b>：<br>
+        1. <b>高频直达</b>：首页顶部成员滑轨末端常驻微型 <code>[ ➕ 添加家人 ]</code> 快捷胶囊；<br>
+        2. <b>全景管理</b>：底部导航/专区进入「家庭空间」，集中管理多人档案、病史与家庭协同权限。
+    </div>
+
+    <div class="spec-section">
+      <h4>⚡ 2. 核心功能点：➕ 添加新家人 3 步向导 (Onboarding Wizard)</h4>
+      • <b>Step 1 角色模板预设 (Role Preset)</b>：点选 👶婴幼儿、👴长辈老人、👩自己/伴侣，系统底层即刻挂载对应的指标池与医学算法；<br>
+      • <b>Step 2 生理档案与特异体质</b>：录入出生日期（用于婴儿月龄发育计算、矫正月龄）、性别，点选过敏原标签（牛奶蛋白、鸡蛋清、青霉素等）；<br>
+      • <b>Step 3 专属 6 项槽位智能装载</b>：
+        <div style="margin: 4px 0 4px 8px; font-size: 12px;">
+          - 婴儿自动预配：奶量、便便、体温、辅食、用药、睡眠；<br>
+          - 老人自动预配：尿酸、血压、慢病药、饮水、散步、排便；<br>
+          - 成人自动预配：饮水、深睡、体重BMI、热量、生理期、心情。
+        </div>
+    </div>
+
+    <div class="spec-section">
+      <h4>⚙️ 3. 独立系统设置专区 (System Settings)</h4>
+      • <b>智能复测与用药闹钟</b>：根据安全间隔（美林6h/非布司他每日晚）下发全家协同推送；<br>
+      • <b>智能硬件与蓝牙直连</b>：蓝牙体温贴、智能血压计、指尖血尿酸仪自动同步；<br>
+      • <b>多端协同与权限体系</b>：主管理员（林女士）、次看护人（月嫂/保姆，仅限录入）、长辈简化大字模式。
+    </div>
+
+    <div class="spec-section">
+      <h4>🔄 4. 互动交互测试指南</h4>
+      👉 <b>在右侧手机界面中轻点操作：</b><br>
+      1. 点击 <b>「➕ 添加新家庭成员」</b>，唤起半屏向导，尝试添加一个“爸爸”或“二宝”；<br>
+      2. 切换顶部 <b>「⚙️ 系统设置」</b> 选项卡，体验闹钟、蓝牙硬件与隐私权限；<br>
+      3. 在成员卡片上点击 <b>「定制专属6项」</b>，体验指标槽位热插拔增删。
+    </div>
+
+    <a href="index.html" class="link-portal">➔ 返回《安康记》全页面设计大厅 (Index Portal)</a>
+  </aside>
+
+  <!-- RIGHT PANEL: INTERACTIVE MOBILE DEMO -->
+  <main class="phone-wrapper">
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>09:41</span>
+        <span>5G 📶 98%</span>
+      </div>
+
+      <!-- Phone Content -->
+      <div class="phone-content">
+        <!-- Top Nav -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h2 style="font-size:16px;font-weight:900;">🏠 家庭空间与设置</h2>
+          <button style="border:none;background:none;font-size:12px;color:var(--slate-500);cursor:pointer;" onclick="location.href='page_1_home_dashboard.html'">✕ 返回首页</button>
+        </div>
+
+        <!-- Segmented Tab: 解耦家庭与系统 -->
+        <div class="seg-tabs-row">
+          <button class="seg-tab-btn active" id="tabBtnFamily" onclick="switchMainTab('family')">👨‍👩‍👧‍👦 家庭成员档案 (3人)</button>
+          <button class="seg-tab-btn" id="tabBtnSystem" onclick="switchMainTab('system')">⚙️ 系统与设备设置</button>
+        </div>
+
+        <!-- ==============================================
+             PANEL 1: FAMILY MEMBERS HUB
+             ============================================== -->
+        <div id="panelFamily">
+          <!-- Family Overview Banner -->
+          <div class="fam-header-bar">
+            <div class="fam-title-group">
+              <h3>🏡 林女士的温馨小家</h3>
+              <p>3位家人 · 2位监护人协同中</p>
+            </div>
+            <button class="btn-invite-pill" onclick="showToast('已复制家庭邀请微信卡片链接！')">+ 邀请协作</button>
+          </div>
+
+          <!-- PRIMARY ACTION: ADD MEMBER -->
+          <button class="btn-add-member" onclick="openAddWizard()">
+            <span style="font-size:16px;">➕</span>
+            <span>添加新家庭成员 (宝宝 / 老人 / 伴侣)</span>
+          </button>
+
+          <!-- Member List Cards -->
+          <div id="membersListContainer">
+            <!-- 1. Baby -->
+            <div class="member-item-card active-managing">
+              <div class="mic-top">
+                <div class="mic-identity">
+                  <div class="mic-avatar">👶</div>
+                  <div class="mic-names">
+                    <h4>安安 <small style="color:var(--slate-500);font-weight:normal;">(次子)</small></h4>
+                    <p>8个月 · 矫正8个月 · 8.6kg</p>
+                  </div>
+                </div>
+                <span class="mic-badge mb-fever">🤒 感冒发烧期</span>
+              </div>
+              <div class="mic-info-list">
+                • <b>特异体质/过敏原</b>：鸡蛋清轻度过敏、牛奶蛋白吸收良好<br>
+                • <b>当前重点指标</b>：奶量、大便、体温、退热药 (专属6项已配)
+              </div>
+              <div class="mic-actions-row">
+                <button class="mic-btn primary" onclick="showSlotManager('安安')">⚡ 定制专属6项</button>
+                <button class="mic-btn" onclick="showToast('已进入安安健康档案编辑')">编辑档案</button>
+              </div>
+            </div>
+
+            <!-- 2. Grandpa -->
+            <div class="member-item-card">
+              <div class="mic-top">
+                <div class="mic-identity">
+                  <div class="mic-avatar">👴</div>
+                  <div class="mic-names">
+                    <h4>张大爷 <small style="color:var(--slate-500);font-weight:normal;">(父亲/公公)</small></h4>
+                    <p>68岁 · 痛风慢病管理期</p>
+                  </div>
+                </div>
+                <span class="mic-badge mb-elder">🧪 尿酸485 需控</span>
+              </div>
+              <div class="mic-info-list">
+                • <b>特异体质/慢病史</b>：高尿酸血症、临界高血压，无药物过敏<br>
+                • <b>当前重点指标</b>：尿酸、血压、慢病药、饮水排酸
+              </div>
+              <div class="mic-actions-row">
+                <button class="mic-btn" onclick="showSlotManager('张大爷')">⚡ 定制专属6项</button>
+                <button class="mic-btn" onclick="showToast('已进入张大爷健康档案编辑')">编辑档案</button>
+              </div>
+            </div>
+
+            <!-- 3. Mom -->
+            <div class="member-item-card">
+              <div class="mic-top">
+                <div class="mic-identity">
+                  <div class="mic-avatar">👩</div>
+                  <div class="mic-names">
+                    <h4>林女士 <small style="color:var(--slate-500);font-weight:normal;">(我 · 主管理员)</small></h4>
+                    <p>32岁 · 健康日常中枢</p>
+                  </div>
+                </div>
+                <span class="mic-badge mb-normal">🌸 健康日常</span>
+              </div>
+              <div class="mic-info-list">
+                • <b>健康重点关注</b>：水分代谢、睡眠质量、轻体BMI 20.6
+              </div>
+              <div class="mic-actions-row">
+                <button class="mic-btn" onclick="showSlotManager('林女士')">⚡ 定制专属6项</button>
+                <button class="mic-btn" onclick="showToast('已进入本人健康档案编辑')">编辑档案</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Slots Drawer (为当前选定人员定制专属 6 项) -->
+          <div class="cfg-card" id="slotCustomizerCard" style="display:none;">
+            <div class="cfg-card-h">
+              <span>⚡ 为「<span id="currentEditingMemName">安安</span>」定制专属首屏槽位</span>
+              <span style="font-size:11px;color:var(--teal-600);font-weight:800;" id="slotCounter">已选 6/6 项</span>
+            </div>
+            <div class="slots-grid" id="slotsGrid">
+              <div class="slot-item">🍼 记奶量 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+              <div class="slot-item">💩 记便便 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+              <div class="slot-item">🌡️ 记体温 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+              <div class="slot-item">🥣 记辅食 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+              <div class="slot-item">💊 记用药 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+              <div class="slot-item">😴 记睡眠 <span class="slot-del" onclick="removeSlot(this)">✕</span></div>
+            </div>
+            <div style="font-size:10px;font-weight:700;color:var(--slate-500);margin-top:6px;">备选指标库 (点击装配)：</div>
+            <div class="lib-wrap">
+              <span class="lib-chip" onclick="addSlot('💧 记饮水')">+ 💧 记饮水</span>
+              <span class="lib-chip" onclick="addSlot('⚖️ 记体重')">+ ⚖️ 记体重</span>
+              <span class="lib-chip" onclick="addSlot('🗣️ 记咳嗽')">+ 🗣️ 记咳嗽</span>
+              <span class="lib-chip" onclick="addSlot('🩸 测血糖')">+ 🩸 测血糖</span>
+              <span class="lib-chip" onclick="addSlot('🚶 记步数')">+ 🚶 记步数</span>
+            </div>
+            <button class="mic-btn primary" style="width:100%;margin-top:10px;padding:8px 0;" onclick="saveSlots()">保存该成员专属配置</button>
+          </div>
+        </div>
+
+        <!-- ==============================================
+             PANEL 2: SYSTEM SETTINGS
+             ============================================== -->
+        <div id="panelSystem" style="display:none;">
+          <!-- 1. Reminders -->
+          <div class="setting-group">
+            <div style="font-size:12px;font-weight:800;color:var(--teal-600);margin-bottom:8px;">🔔 智能闹钟与用药防漏</div>
+            <div class="setting-row">
+              <div>
+                <div class="sr-title">退热药安全复测闹钟</div>
+                <div class="sr-desc">服药后4小时准时震动提示复测体温</div>
+              </div>
+              <input type="checkbox" checked style="accent-color:var(--teal-600);width:16px;height:16px;">
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="sr-title">长辈慢病服药协同提醒</div>
+                <div class="sr-desc">晚20:00若爷爷未服药自动微信提醒主看护人</div>
+              </div>
+              <input type="checkbox" checked style="accent-color:var(--teal-600);width:16px;height:16px;">
+            </div>
+          </div>
+
+          <!-- 2. Hardware Devices -->
+          <div class="setting-group">
+            <div style="font-size:12px;font-weight:800;color:var(--indigo-600);margin-bottom:8px;">⌚ 智能硬件与蓝牙直连</div>
+            <div class="setting-row">
+              <div>
+                <div class="sr-title">蓝牙体温贴 (安安)</div>
+                <div class="sr-desc" style="color:var(--teal-600);">● 已连接 (实时连续测温中)</div>
+              </div>
+              <button class="mic-btn" style="padding:4px 8px;font-size:10px;" onclick="showToast('设备状态良好')">管理</button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="sr-title">智能血压计 (张大爷)</div>
+                <div class="sr-desc">上次测量同步: 今晨 07:15 (126/80)</div>
+              </div>
+              <button class="mic-btn" style="padding:4px 8px;font-size:10px;" onclick="showToast('血压计电量充足')">管理</button>
+            </div>
+          </div>
+
+          <!-- 3. Data & Privacy -->
+          <div class="setting-group">
+            <div style="font-size:12px;font-weight:800;color:var(--slate-700);margin-bottom:8px;">📁 数据导出与隐私加密</div>
+            <div class="setting-row" onclick="showToast('正在导出全家健康总账本 Excel...')">
+              <div>
+                <div class="sr-title">导出全家健康 Excel / PDF 报表</div>
+                <div class="sr-desc">支持儿保体检与医生会诊全量病历归档</div>
+              </div>
+              <span style="font-size:12px;color:var(--slate-400);">➔</span>
+            </div>
+            <div class="setting-row" onclick="showToast('云端端到端加密正常生效中')">
+              <div>
+                <div class="sr-title">健康数据端到端隐私加密</div>
+                <div class="sr-desc">医疗级加密存储，严格隔离三方广告</div>
+              </div>
+              <span style="font-size:10px;color:var(--teal-600);font-weight:700;">已开启</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==============================================
+           ADD MEMBER WIZARD MODAL (3 步极速建档向导)
+           ============================================== -->
+      <div class="modal-overlay" id="addWizardModal">
+        <div class="modal-sheet">
+          <div class="wizard-head">
+            <h3>➕ 添加新家庭成员</h3>
+            <button class="wizard-close" onclick="closeAddWizard()">✕</button>
+          </div>
+
+          <!-- Step 1: Role -->
+          <div class="wizard-label">1. 选择家庭角色 (自适应专属医学模板)：</div>
+          <div class="role-pick-grid">
+            <div class="role-pick-card active" onclick="selectRole('baby', this)">
+              <span class="icon">👶</span>
+              <div class="name">婴幼儿 / 儿童</div>
+              <div class="sub">发育/奶量/急病</div>
+            </div>
+            <div class="role-pick-card" onclick="selectRole('elder', this)">
+              <span class="icon">👴</span>
+              <div class="name">父母长辈</div>
+              <div class="sub">慢病/尿酸/血压</div>
+            </div>
+            <div class="role-pick-card" onclick="selectRole('adult', this)">
+              <span class="icon">👩</span>
+              <div class="name">伴侣 / 自己</div>
+              <div class="sub">日常/体型/压力</div>
+            </div>
+          </div>
+
+          <!-- Step 2: Info -->
+          <div class="wizard-label">2. 基础体征档案：</div>
+          <input type="text" id="newMemName" placeholder="成员昵称 (如: 爸爸、大宝、奶奶)" class="wizard-input" value="陈先生 (爸爸)">
+          <input type="text" id="newMemAge" placeholder="年龄或生日 (如: 34岁 / 2024-03-01)" class="wizard-input" value="35岁">
+
+          <!-- Step 3: Allergies -->
+          <div class="wizard-label">3. 特异体质与过敏原备忘：</div>
+          <div class="allergy-tags">
+            <span class="a-tag" onclick="toggleAllergy(this)">🥛 牛奶蛋白过敏</span>
+            <span class="a-tag" onclick="toggleAllergy(this)">🥚 鸡蛋清过敏</span>
+            <span class="a-tag active" onclick="toggleAllergy(this)">💊 青霉素过敏 ✓</span>
+            <span class="a-tag" onclick="toggleAllergy(this)">🦀 海鲜过敏</span>
+            <span class="a-tag" onclick="toggleAllergy(this)">🥜 花生坚果</span>
+            <span class="a-tag" onclick="toggleAllergy(this)">🌿 蚕豆病(G6PD)</span>
+          </div>
+
+          <!-- Auto Preset Hint -->
+          <div style="background:var(--teal-50);border:1px dashed var(--teal-600);border-radius:10px;padding:8px 10px;font-size:10px;color:var(--teal-700);line-height:1.5;margin-bottom:14px;" id="presetHintText">
+            ✨ <b>系统已根据角色智能预装槽位</b>：血压监控、每日饮水、深度睡眠、散步计步、热量饮食、心态记录。建档后可随时微调！
+          </div>
+
+          <!-- Submit -->
+          <button class="mic-btn primary" style="width:100%;padding:10px 0;font-size:13px;" onclick="confirmAddMember()">
+            完成建档并开启专属监控看板
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom 4-Tab Navigation Bar -->
+      <nav class="bottom-tab-bar">
+        <div class="tab-item" onclick="location.href='page_1_home_dashboard.html'">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">今日看板</span>
+        </div>
+        <div class="tab-item-center" onclick="location.href='page_3_speed_input.html'" title="极速记一笔">
+          <div class="fab-circle">➕</div>
+          <span class="tab-label">极速记</span>
+        </div>
+        <div class="tab-item" onclick="location.href='page_4_doctor_summary.html'">
+          <span class="tab-icon">📁</span>
+          <span class="tab-label">健康档案</span>
+        </div>
+        <!-- Active Tab: 家庭设置 -->
+        <div class="tab-item active" onclick="location.href='page_6_member_settings.html'">
+          <span class="tab-icon">👨‍👩‍👧‍👦</span>
+          <span class="tab-label" style="color:var(--teal-600);font-weight:800;">家庭设置</span>
+        </div>
+      </nav>
+
+      <!-- Toast Feedback -->
+      <div class="toast-box" id="globalToast">提示信息</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('globalToast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // Switch Segmented Tabs: Family vs System
+  function switchMainTab(type) {
+    const btnFam = document.getElementById('tabBtnFamily');
+    const btnSys = document.getElementById('tabBtnSystem');
+    const pFam = document.getElementById('panelFamily');
+    const pSys = document.getElementById('panelSystem');
+
+    if (type === 'family') {
+      btnFam.classList.add('active');
+      btnSys.classList.remove('active');
+      pFam.style.display = 'block';
+      pSys.style.display = 'none';
+    } else {
+      btnSys.classList.add('active');
+      btnFam.classList.remove('active');
+      pSys.style.display = 'block';
+      pFam.style.display = 'none';
+    }
+  }
+
+  // Add Member Wizard
+  function openAddWizard() {
+    document.getElementById('addWizardModal').classList.add('open');
+  }
+  function closeAddWizard() {
+    document.getElementById('addWizardModal').classList.remove('open');
+  }
+
+  let selectedRole = 'adult';
+  function selectRole(role, el) {
+    selectedRole = role;
+    document.querySelectorAll('.role-pick-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+
+    const hint = document.getElementById('presetHintText');
+    const nameInput = document.getElementById('newMemName');
+    const ageInput = document.getElementById('newMemAge');
+
+    if (role === 'baby') {
+      hint.innerHTML = '✨ <b>系统已智能预设婴儿模式</b>：自动挂载奶量、布里斯托大便、发烧体温起伏、辅食进食、退热药安全罗盘。';
+      nameInput.value = '点点 (新生儿)';
+      ageInput.value = '3个月';
+    } else if (role === 'elder') {
+      hint.innerHTML = '✨ <b>系统已智能预设老人慢病模式</b>：自动挂载指尖血尿酸420警戒、血压脉搏、慢病处方药、低嘌呤饮食红绿灯。';
+      nameInput.value = '王奶奶 (母亲)';
+      ageInput.value = '65岁';
+    } else {
+      hint.innerHTML = '✨ <b>系统已智能预设成人健康模式</b>：自动挂载血压、饮水、深睡、体重BMI、热量饮食、心态打卡。';
+      nameInput.value = '陈先生 (爸爸)';
+      ageInput.value = '35岁';
+    }
+  }
+
+  function toggleAllergy(el) {
+    el.classList.toggle('active');
+  }
+
+  function confirmAddMember() {
+    const name = document.getElementById('newMemName').value || '新成员';
+    closeAddWizard();
+    showToast(`🎉 成功添加家庭成员「${name}」！专属首屏已生成`);
+
+    // Dynamically insert new member card into list
+    const container = document.getElementById('membersListContainer');
+    const newCard = document.createElement('div');
+    newCard.className = 'member-item-card';
+    newCard.style.animation = 'fadeIn 0.3s ease';
+    newCard.innerHTML = `
+      <div class="mic-top">
+        <div class="mic-identity">
+          <div class="mic-avatar">${selectedRole === 'baby' ? '👶' : (selectedRole === 'elder' ? '👴' : '👨')}</div>
+          <div class="mic-names">
+            <h4>${name}</h4>
+            <p>健康监控已就绪 · 专属指标已自适应装载</p>
+          </div>
+        </div>
+        <span class="mic-badge mb-normal">🌿 新加入</span>
+      </div>
+      <div class="mic-actions-row">
+        <button class="mic-btn primary" onclick="showSlotManager('${name}')">⚡ 定制专属6项</button>
+        <button class="mic-btn" onclick="showToast('已进入${name}健康档案编辑')">编辑档案</button>
+      </div>
+    `;
+    container.insertBefore(newCard, container.firstChild);
+  }
+
+  // 6 Slots Manager
+  function showSlotManager(memName) {
+    const card = document.getElementById('slotCustomizerCard');
+    card.style.display = 'block';
+    document.getElementById('currentEditingMemName').innerText = memName;
+    card.scrollIntoView({ behavior: 'smooth' });
+    showToast(`已展开「${memName}」的专属 6 槽位配置面板`);
+  }
+
+  let slotCount = 6;
+  function removeSlot(el) {
+    el.parentElement.remove();
+    slotCount--;
+    document.getElementById('slotCounter').innerText = `已选 ${slotCount}/6 项`;
+  }
+
+  function addSlot(name) {
+    if (slotCount >= 6) {
+      showToast('⚠️ 专属槽位已满 6 项！请先移除一项再添加');
+      return;
+    }
+    const grid = document.getElementById('slotsGrid');
+    const div = document.createElement('div');
+    div.className = 'slot-item';
+    div.innerHTML = `${name} <span class="slot-del" onclick="removeSlot(this)">✕</span>`;
+    grid.appendChild(div);
+    slotCount++;
+    document.getElementById('slotCounter').innerText = `已选 ${slotCount}/6 项`;
+  }
+
+  function saveSlots() {
+    const name = document.getElementById('currentEditingMemName').innerText;
+    showToast(`✅ 已保存「${name}」的 6 项槽位，首屏看板已同步生效！`);
+    document.getElementById('slotCustomizerCard').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

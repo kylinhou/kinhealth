@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P3: 极速录入中心与布里斯托排便图谱 - 安康记 Demo & 功能说明</title>
+  <style>
+    :root {
+      --teal-600: #0D9488;
+      --teal-50: #F0FDFA;
+      --amber-500: #F59E0B;
+      --rose-500: #F43F5E;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #0B1120; color: #E2E8F0; min-height: 100vh; padding: 24px; display: flex; justify-content: center; }
+    .layout-grid { display: flex; gap: 32px; max-width: 1360px; width: 100%; align-items: flex-start; }
+
+    /* LEFT: PM SPECIFICATION SHEET */
+    .pm-spec-panel {
+      flex: 1.1;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      color: #E2E8F0;
+    }
+    .badge-nav { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.2); color: #6EE7B7; border: 1px solid rgba(110,231,183,0.3); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+    .pm-title { font-size: 22px; font-weight: 800; color: #F8FAFC; margin-bottom: 6px; }
+    .pm-subtitle { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 20px; }
+    .spec-section { background: #0F172A; border: 1px solid #334155; border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #CBD5E1; }
+    .spec-section h4 { color: #38BDF8; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .link-portal { display: inline-flex; align-items: center; gap: 6px; color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 700; margin-top: 10px; }
+    .link-portal:hover { text-decoration: underline; }
+
+    /* RIGHT: MOBILE DEMO */
+    .phone-wrapper {
+      width: 410px;
+      height: 850px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 0 0 3px #334155, 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--slate-50);
+      border-radius: 38px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--slate-900);
+      position: relative;
+    }
+    .status-bar { height: 40px; padding: 10px 22px 0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--slate-700); }
+    .phone-content { flex: 1; overflow-y: auto; padding: 10px 16px 80px; scrollbar-width: none; }
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* Category Tab Switcher */
+    .cat-nav-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+    .cat-tab-btn { background: #fff; border: 1.5px solid var(--slate-200); border-radius: 12px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; }
+    .cat-tab-btn.active { border-color: var(--teal-600); background: var(--teal-50); }
+    .cat-tab-btn span.icon { font-size: 18px; }
+    .cat-tab-btn span.label { font-size: 10px; font-weight: 800; color: var(--slate-700); }
+    .cat-tab-btn.active span.label { color: var(--teal-600); }
+
+    /* Form Container */
+    .form-panel { background: #fff; border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--slate-200); box-shadow: var(--shadow-card); margin-bottom: 14px; }
+    .form-title { font-size: 13px; font-weight: 800; color: var(--slate-800); margin-bottom: 12px; display: flex; justify-content: space-between; }
+
+    /* Bristol Slider */
+    .bristol-track { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: none; }
+    .bristol-track::-webkit-scrollbar { display: none; }
+    .bristol-tile { flex-shrink: 0; width: 120px; background: var(--slate-50); border: 1.5px solid var(--slate-200); border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .bristol-tile.active { border-color: var(--teal-600); background: #fff; box-shadow: 0 4px 12px rgba(13,148,136,0.18); transform: translateY(-2px); }
+    .b-icon { font-size: 26px; margin-bottom: 4px; }
+    .b-title { font-size: 12px; font-weight: 800; color: var(--slate-900); }
+    .b-desc { font-size: 10px; color: var(--slate-500); margin-top: 2px; }
+
+    /* Swatches */
+    .swatch-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 14px; }
+    .swatch-card { background: #fff; border: 1.5px solid var(--slate-200); border-radius: 10px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; font-size: 10px; font-weight: 700; }
+    .swatch-card.active { border-color: var(--teal-600); }
+    .swatch-dot { width: 14px; height: 14px; border-radius: 50%; }
+
+    /* Stepper */
+    .stepper-wrap { display: flex; align-items: center; justify-content: center; gap: 20px; background: var(--slate-50); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; }
+    .step-btn { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid var(--slate-200); font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .step-val { font-size: 26px; font-weight: 900; min-width: 110px; text-align: center; }
+
+    /* Milk Preset Chips */
+    .preset-chips { display: flex; gap: 6px; margin-bottom: 12px; }
+    .p-chip { flex: 1; background: var(--slate-100); border-radius: var(--radius-full); padding: 7px 0; text-align: center; font-size: 11px; font-weight: 700; color: var(--slate-700); cursor: pointer; }
+    .p-chip.active { background: var(--teal-600); color: #fff; }
+
+    /* Breastfeeding Stopwatch */
+    .stopwatch-box { background: var(--teal-50); border: 1.5px dashed var(--teal-600); border-radius: var(--radius-md); padding: 12px; text-align: center; margin-bottom: 12px; }
+    .stopwatch-time { font-size: 24px; font-weight: 900; color: var(--teal-600); margin: 4px 0; }
+    .sw-btn-row { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+    .sw-btn { background: var(--teal-600); color: #fff; border: none; border-radius: 20px; padding: 6px 14px; font-size: 11px; font-weight: 800; cursor: pointer; }
+
+    /* Submit Button */
+    .submit-btn { width: 100%; background: linear-gradient(135deg, var(--teal-600), #0F766E); color: #fff; border: none; border-radius: var(--radius-full); padding: 14px 0; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 16px rgba(13,148,136,0.3); }
+
+    /* More Metrics Library Toggle & Panel */
+    .more-library-trigger {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1.5px dashed var(--slate-300);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--teal-600);
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .more-library-trigger:hover {
+      background: var(--teal-50);
+      border-color: var(--teal-600);
+    }
+    .more-library-panel {
+      display: none;
+      background: #FFFFFF;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-card);
+      animation: fadeIn 0.25s ease;
+    }
+    .more-library-panel.open { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .more-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .more-chip-item {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--slate-700);
+      transition: all 0.2s;
+    }
+    .more-chip-item:hover, .more-chip-item.active {
+      background: var(--teal-50);
+      border-color: var(--teal-600);
+      color: var(--teal-600);
+    }
+    .more-chip-item span.icon { font-size: 18px; }
+
+    /* Extended Form Input Rows */
+    .input-field-row {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      font-size: 12px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout-grid">
+  <!-- LEFT PANEL: PM DETAILED FEATURE SPECIFICATION -->
+  <aside class="pm-spec-panel">
+    <div class="badge-nav">📑 PAGE 3 / 6 · 极速录入体验与布里斯托图谱</div>
+    <h1 class="pm-title">极速录入中心与布里斯托排便图谱</h1>
+    <p class="pm-subtitle">
+      解决宝妈、月嫂、老人“日常打卡手忙脚乱、文字描述大便失准、吃奶计时繁琐”的交互瓶颈，追求<b>“单手 2-Tap 极速记录”</b>。
+    </p>
+
+    <div class="spec-section">
+      <h4>💩 1. 布里斯托 7 级排便医学图谱化 (Bristol Stool Scale)</h4>
+      • <b>微拟物可爱卡片</b>：用温和不恶心的卡通图解（🌰羊粪球、🥖凸凹块状、🍌光滑香蕉便、🥣糊状泥、💧水样便），让全家统一认知，告别口头模糊沟通；<br>
+      • <b>危险警示色板</b>：金黄色/墨绿色为生理期正常色；若勾选 <b>带血红</b> 或 <b>灰白色陶土便</b>，系统立即触发肠道或胆道异常提示；<br>
+      • <b>性状伴随特征</b>：快速勾选奶瓣（消化吸收未全）、黏液、泡沫。
+    </div>
+
+    <div class="spec-section">
+      <h4>🍼 2. 喂奶双模式秒记 (瓶喂容量 + 亲喂秒表)</h4>
+      • <b>配方奶/瓶喂</b>：高频容量胶囊（90/120/150/180/210ml）一按即选，支持 +/- 10ml 微调；<br>
+      • <b>母乳亲喂</b>：左右侧乳房独立计时秒表，记录吸吮有效时长，换边时一键切换，免除家长看时钟默算的困扰。
+    </div>
+
+    <div class="spec-section">
+      <h4>🔄 3. 互动交互测试指南</h4>
+      👉 <b>在右侧手机界面中轻点操作：</b><br>
+      1. 切换顶部标签：<b>💩 排便</b>、<b>🍼 喂养</b>、<b>🌡️ 体温</b>、<b>🧪 尿酸</b>；<br>
+      2. 横向滑动挑选布里斯托大便形态并点选便便颜色；<br>
+      3. 在喂养模块开启“母乳亲喂秒表计时器”，观察秒表跳动；<br>
+      4. 点击底部 <b>「确认并保存到时间线」</b>，完成打卡闭环。
+    </div>
+
+    <a href="index.html" class="link-portal">➔ 返回《安康记》全页面设计大厅 (Index Portal)</a>
+  </aside>
+
+  <!-- RIGHT PANEL: INTERACTIVE MOBILE DEMO -->
+  <main class="phone-wrapper">
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>09:41</span>
+        <span>5G 📶 98%</span>
+      </div>
+
+      <!-- Phone Content -->
+      <div class="phone-content">
+        <!-- Top Nav -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h2 style="font-size:16px;font-weight:800;">⚡ 极速记一笔数据</h2>
+          <button style="border:none;background:none;font-size:12px;color:var(--slate-500);cursor:pointer;" onclick="location.href='page_1_home_dashboard.html'">✕ 关闭</button>
+        </div>
+
+        <!-- 4 Major Categories Navigation -->
+        <div class="cat-nav-row">
+          <div class="cat-tab-btn active" id="tab-poop" onclick="switchInputCat('poop')">
+            <span class="icon">💩</span>
+            <span class="label">布里斯托排便</span>
+          </div>
+          <div class="cat-tab-btn" id="tab-milk" onclick="switchInputCat('milk')">
+            <span class="icon">🍼</span>
+            <span class="label">奶量喂养</span>
+          </div>
+          <div class="cat-tab-btn" id="tab-temp" onclick="switchInputCat('temp')">
+            <span class="icon">🌡️</span>
+            <span class="label">测量体温</span>
+          </div>
+          <div class="cat-tab-btn" id="tab-uric" onclick="switchInputCat('uric')">
+            <span class="icon">🧪</span>
+            <span class="label">尿酸指标</span>
+          </div>
+        </div>
+
+        <!-- More Library Trigger & Expandable Panel -->
+        <div class="more-library-trigger" onclick="toggleMoreLibrary()">
+          <span>➕ 更多指标库 / 记录其他项目</span>
+          <span id="moreLibArrow" style="font-size:14px;">▾ 点击展开全部</span>
+        </div>
+
+        <div class="more-library-panel" id="moreLibPanel">
+          <div style="font-size:10px;font-weight:700;color:var(--slate-500);margin-bottom:8px;">从指标库点选任意项目快速打卡：</div>
+          <div class="more-chips-grid">
+            <div class="more-chip-item" id="ext-btn-med" onclick="switchExtendedCat('med')">
+              <span class="icon">💊</span>
+              <span>记用药</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-bp" onclick="switchExtendedCat('bp')">
+              <span class="icon">❤️</span>
+              <span>记血压</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-diet" onclick="switchExtendedCat('diet')">
+              <span class="icon">🥣</span>
+              <span>记辅食</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-water" onclick="switchExtendedCat('water')">
+              <span class="icon">💧</span>
+              <span>记饮水</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-glucose" onclick="switchExtendedCat('glucose')">
+              <span class="icon">🩸</span>
+              <span>测血糖</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-sleep" onclick="switchExtendedCat('sleep')">
+              <span class="icon">😴</span>
+              <span>记睡眠</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-weight" onclick="switchExtendedCat('weight')">
+              <span class="icon">⚖️</span>
+              <span>记体重</span>
+            </div>
+            <div class="more-chip-item" id="ext-btn-cough" onclick="switchExtendedCat('cough')">
+              <span class="icon">🗣️</span>
+              <span>记咳嗽</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 1: POOP -->
+        <div class="form-panel" id="panel-poop">
+          <div class="form-title">
+            <span>布里斯托大便性状 (滑动图谱)</span>
+            <span style="font-size:11px;color:var(--teal-600);">医学7级分类</span>
+          </div>
+          <div class="bristol-track">
+            <div class="bristol-tile" onclick="selectBristol(this, '1型 · 羊粪球')">
+              <div class="b-icon">🌰</div>
+              <div class="b-title">1型 · 坚硬球</div>
+              <div class="b-desc">干硬难排·重便秘</div>
+            </div>
+            <div class="bristol-tile" onclick="selectBristol(this, '2型 · 凹凸香肠')">
+              <div class="b-icon">🥖</div>
+              <div class="b-title">2型 · 凹凸块</div>
+              <div class="b-desc">硬香肠·轻便秘</div>
+            </div>
+            <div class="bristol-tile active" onclick="selectBristol(this, '4型 · 滑软香蕉')">
+              <div class="b-icon">🍌</div>
+              <div class="b-title">4型 · 滑软蕉</div>
+              <div class="b-desc">最理想·黄金便</div>
+            </div>
+            <div class="bristol-tile" onclick="selectBristol(this, '6型 · 糊状泥')">
+              <div class="b-icon">🥣</div>
+              <div class="b-title">6型 · 糊状泥</div>
+              <div class="b-desc">边缘散·微稀腹泻</div>
+            </div>
+            <div class="bristol-tile" onclick="selectBristol(this, '7型 · 水样蛋花')">
+              <div class="b-icon">💧</div>
+              <div class="b-title">7型 · 水样便</div>
+              <div class="b-desc">蛋花水·脱水预警</div>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:700;color:var(--slate-500);margin-bottom:4px;">便便颜色选择：</div>
+          <div class="swatch-bar">
+            <div class="swatch-card active" onclick="selectSwatch(this, '金黄色')">
+              <div class="swatch-dot" style="background:#EAB308;"></div>
+              <span>金黄色(正常)</span>
+            </div>
+            <div class="swatch-card" onclick="selectSwatch(this, '墨绿色')">
+              <div class="swatch-dot" style="background:#15803D;"></div>
+              <span>墨绿色</span>
+            </div>
+            <div class="swatch-card" onclick="selectSwatch(this, '棕褐色')">
+              <div class="swatch-dot" style="background:#78350F;"></div>
+              <span>棕褐色</span>
+            </div>
+            <div class="swatch-card" onclick="selectSwatch(this, '红色')">
+              <div class="swatch-dot" style="background:#DC2626;"></div>
+              <span style="color:#DC2626;">带血红(警惕)</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;">
+            <span style="font-size:11px;background:var(--slate-100);padding:5px 8px;border-radius:6px;cursor:pointer;">+ 有轻微奶瓣</span>
+            <span style="font-size:11px;background:var(--slate-100);padding:5px 8px;border-radius:6px;cursor:pointer;">+ 泡沫多</span>
+            <span style="font-size:11px;background:var(--slate-100);padding:5px 8px;border-radius:6px;cursor:pointer;">+ 腹部胀气</span>
+          </div>
+        </div>
+
+        <!-- PANE 2: MILK -->
+        <div class="form-panel" id="panel-milk" style="display:none;">
+          <div class="form-title">
+            <span>喂养容量打卡</span>
+            <span style="font-size:11px;color:var(--teal-600);">快捷胶囊</span>
+          </div>
+          <div class="preset-chips">
+            <div class="p-chip" onclick="setMilk(90)">90ml</div>
+            <div class="p-chip" onclick="setMilk(120)">120ml</div>
+            <div class="p-chip active" onclick="setMilk(150)">150ml</div>
+            <div class="p-chip" onclick="setMilk(180)">180ml</div>
+            <div class="p-chip" onclick="setMilk(210)">210ml</div>
+          </div>
+
+          <div class="stepper-wrap">
+            <div class="step-btn" onclick="stepMilk(-10)">－</div>
+            <div class="step-val" style="color:var(--amber-500);"><span id="dispMilk">150</span><small style="font-size:13px;color:var(--slate-500);">ml</small></div>
+            <div class="step-btn" onclick="stepMilk(+10)">＋</div>
+          </div>
+
+          <!-- Breastfeeding Stopwatch -->
+          <div class="stopwatch-box">
+            <div style="font-size:11px;font-weight:700;color:var(--teal-700);">🤱 母乳亲喂秒表 (左/右侧独立计时)</div>
+            <div class="stopwatch-time" id="swTimeDisp">08:45</div>
+            <div class="sw-btn-row">
+              <button class="sw-btn" onclick="toggleStopwatch()">暂停 / 继续</button>
+              <button class="sw-btn" style="background:#0F766E;" onclick="switchBreast()">切换到右侧</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 3: TEMP -->
+        <div class="form-panel" id="panel-temp" style="display:none;">
+          <div class="form-title">
+            <span>测得体温 (℃)</span>
+            <span style="font-size:11px;color:var(--rose-500);">警戒 38.5℃</span>
+          </div>
+          <div class="stepper-wrap">
+            <div class="step-btn" onclick="stepTemp(-0.1)">－</div>
+            <div class="step-val" style="color:var(--rose-500);"><span id="dispTemp">38.5</span><small style="font-size:13px;">℃</small></div>
+            <div class="step-btn" onclick="stepTemp(+0.1)">＋</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div class="p-chip active">腋下测量 (推荐)</div>
+            <div class="p-chip">耳温枪</div>
+            <div class="p-chip">额温</div>
+          </div>
+        </div>
+
+        <!-- PANE 4: URIC -->
+        <div class="form-panel" id="panel-uric" style="display:none;">
+          <div class="form-title">
+            <span>指尖血尿酸 (μmol/L)</span>
+            <span style="font-size:11px;color:var(--teal-600);">正常 ≤420</span>
+          </div>
+          <div class="stepper-wrap">
+            <div class="step-btn" onclick="stepUric(-5)">－</div>
+            <div class="step-val" style="color:#C2410C;"><span id="dispUric">485</span><small style="font-size:13px;">μmol/L</small></div>
+            <div class="step-btn" onclick="stepUric(+5)">＋</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div class="p-chip active">清晨空腹</div>
+            <div class="p-chip">餐后监测</div>
+            <div class="p-chip">关节疼痛期</div>
+          </div>
+        </div>
+
+        <!-- PANE 5: EXTENDED MED (记用药) -->
+        <div class="form-panel" id="panel-med" style="display:none;">
+          <div class="form-title">
+            <span>💊 服药记录 (支持退热与慢病药)</span>
+            <span style="font-size:11px;color:var(--indigo-600);">药箱快捷选</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:var(--slate-50);border:1.5px solid var(--teal-600);border-radius:10px;padding:8px;cursor:pointer;">
+              <div style="font-size:11px;font-weight:800;">对乙酰氨基酚 (泰诺林)</div>
+              <div style="font-size:9px;color:var(--teal-600);">安全间隔: 4-6h</div>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;padding:8px;cursor:pointer;">
+              <div style="font-size:11px;font-weight:800;">布洛芬混悬液 (美林)</div>
+              <div style="font-size:9px;color:var(--slate-500);">安全间隔: 6-8h</div>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;padding:8px;cursor:pointer;">
+              <div style="font-size:11px;font-weight:800;">非布司他 (降尿酸)</div>
+              <div style="font-size:9px;color:var(--slate-500);">常用 20mg/日</div>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;padding:8px;cursor:pointer;">
+              <div style="font-size:11px;font-weight:800;">络活喜 (降压药)</div>
+              <div style="font-size:9px;color:var(--slate-500);">晨间饭后半小时</div>
+            </div>
+          </div>
+          <input type="text" class="input-field-row" placeholder="输入给药剂量 (如: 3.5ml 或 1片)..." value="3.5 ml">
+        </div>
+
+        <!-- PANE 6: EXTENDED BP (记血压) -->
+        <div class="form-panel" id="panel-bp" style="display:none;">
+          <div class="form-title">
+            <span>❤️ 血压与脉搏测量</span>
+            <span style="font-size:11px;color:var(--teal-600);">基准 120/80</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div style="background:var(--slate-50);padding:8px;border-radius:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--slate-500);">高压 (收缩压)</div>
+              <div style="font-size:20px;font-weight:900;color:var(--teal-600);">126 <small style="font-size:11px;">mmHg</small></div>
+            </div>
+            <div style="background:var(--slate-50);padding:8px;border-radius:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--slate-500);">低压 (舒张压)</div>
+              <div style="font-size:20px;font-weight:900;color:var(--teal-600);">80 <small style="font-size:11px;">mmHg</small></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <span style="flex:1;background:var(--slate-100);padding:5px 0;text-align:center;border-radius:8px;font-size:10px;font-weight:700;">脉搏: 72 bpm</span>
+            <span style="flex:1;background:var(--slate-100);padding:5px 0;text-align:center;border-radius:8px;font-size:10px;font-weight:700;">早晨空腹测</span>
+          </div>
+        </div>
+
+        <!-- PANE 7: EXTENDED DIET (记饮食辅食) -->
+        <div class="form-panel" id="panel-diet" style="display:none;">
+          <div class="form-title">
+            <span>🥣 辅食与日常饮食记录</span>
+            <span style="font-size:11px;color:var(--amber-500);">过敏排查</span>
+          </div>
+          <input type="text" id="dietContentInput" class="input-field-row" placeholder="记录今天吃了什么..." value="婴儿高铁米粉 25g + 苹果泥大半勺">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:10px;background:var(--slate-100);padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="document.getElementById('dietContentInput').value='辅食米粉 30g'">米粉30g</span>
+            <span style="font-size:10px;background:var(--slate-100);padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="document.getElementById('dietContentInput').value='蒸蛋黄半个'">蛋黄半个</span>
+            <span style="font-size:10px;background:var(--slate-100);padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="document.getElementById('dietContentInput').value='清淡蔬菜粥一小碗'">清淡蔬菜粥</span>
+          </div>
+        </div>
+
+        <!-- PANE 8: EXTENDED WATER (记饮水) -->
+        <div class="form-panel" id="panel-water" style="display:none;">
+          <div class="form-title">
+            <span>💧 饮水量打卡</span>
+            <span style="font-size:11px;color:var(--teal-600);">促代谢排酸</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <span style="flex:1;background:var(--slate-100);border:1px solid var(--slate-200);padding:8px 0;border-radius:10px;text-align:center;font-size:11px;font-weight:800;cursor:pointer;">+100ml</span>
+            <span style="flex:1;background:var(--teal-600);color:#fff;padding:8px 0;border-radius:10px;text-align:center;font-size:11px;font-weight:800;cursor:pointer;">+200ml</span>
+            <span style="flex:1;background:var(--slate-100);border:1px solid var(--slate-200);padding:8px 0;border-radius:10px;text-align:center;font-size:11px;font-weight:800;cursor:pointer;">+300ml</span>
+            <span style="flex:1;background:var(--slate-100);border:1px solid var(--slate-200);padding:8px 0;border-radius:10px;text-align:center;font-size:11px;font-weight:800;cursor:pointer;">+500ml</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="submit-btn" onclick="submitRecord()">确认并保存到时间线</button>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let currentActiveTab = 'poop';
+  let isMoreLibraryOpen = false;
+
+  function toggleMoreLibrary() {
+    isMoreLibraryOpen = !isMoreLibraryOpen;
+    const p = document.getElementById('moreLibPanel');
+    const a = document.getElementById('moreLibArrow');
+    if (isMoreLibraryOpen) {
+      p.classList.add('open');
+      a.innerText = '▴ 点击收起';
+    } else {
+      p.classList.remove('open');
+      a.innerText = '▾ 点击展开全部';
+    }
+  }
+
+  function switchInputCat(cat) {
+    currentActiveTab = cat;
+    document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.more-chip-item').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(`tab-${cat}`);
+    if (target) target.classList.add('active');
+
+    hideAllPanels();
+    const panel = document.getElementById(`panel-${cat}`);
+    if (panel) panel.style.display = 'block';
+  }
+
+  function switchExtendedCat(cat) {
+    currentActiveTab = cat;
+    document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.more-chip-item').forEach(c => c.classList.remove('active'));
+    const chip = document.getElementById(`ext-btn-${cat}`);
+    if (chip) chip.classList.add('active');
+
+    hideAllPanels();
+    const panel = document.getElementById(`panel-${cat}`);
+    if (panel) {
+      panel.style.display = 'block';
+    } else {
+      alert(`已切换到【${cat}】录入模式`);
+    }
+  }
+
+  function hideAllPanels() {
+    ['poop', 'milk', 'temp', 'uric', 'med', 'bp', 'diet', 'water'].forEach(k => {
+      const el = document.getElementById(`panel-${k}`);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  function selectBristol(el, txt) {
+    document.querySelectorAll('.bristol-tile').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function selectSwatch(el, col) {
+    document.querySelectorAll('.swatch-card').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  let milkVal = 150;
+  function setMilk(v) {
+    milkVal = v;
+    document.getElementById('dispMilk').innerText = v;
+  }
+  function stepMilk(d) {
+    milkVal = Math.max(10, milkVal + d);
+    document.getElementById('dispMilk').innerText = milkVal;
+  }
+
+  let tempVal = 38.5;
+  function stepTemp(d) {
+    tempVal = parseFloat((tempVal + d).toFixed(1));
+    document.getElementById('dispTemp').innerText = tempVal.toFixed(1);
+  }
+
+  let uricVal = 485;
+  function stepUric(d) {
+    uricVal = uricVal + d;
+    document.getElementById('dispUric').innerText = uricVal;
+  }
+
+  let swActive = true;
+  function toggleStopwatch() {
+    swActive = !swActive;
+    alert(swActive ? '亲喂秒表已继续' : '亲喂秒表已暂停');
+  }
+  function switchBreast() {
+    alert('已记录左侧 8分45秒，切换至右侧乳房继续计时！');
+  }
+
+  function submitRecord() {
+    alert(`✅ 已成功记录【${currentActiveTab}】并同步到家庭时间线！`);
+    location.href = 'page_1_home_dashboard.html';
+  }
+</script>
+
+</body>
+</html>

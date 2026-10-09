@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2: 儿童感冒发热监护与安全用药看板 - 安康记 Demo & 功能说明</title>
+  <style>
+    :root {
+      --rose-500: #F43F5E;
+      --rose-600: #E11D48;
+      --rose-50: #FFF1F2;
+      --rose-100: #FFE4E6;
+      --teal-600: #0D9488;
+      --teal-50: #F0FDFA;
+      --indigo-600: #4F46E5;
+      --indigo-50: #EEF2FF;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #0B1120; color: #E2E8F0; min-height: 100vh; padding: 24px; display: flex; justify-content: center; }
+    .layout-grid { display: flex; gap: 32px; max-width: 1360px; width: 100%; align-items: flex-start; }
+
+    /* LEFT: PM SPECIFICATION SHEET */
+    .pm-spec-panel {
+      flex: 1.1;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      color: #E2E8F0;
+    }
+    .badge-nav { display: inline-flex; align-items: center; gap: 6px; background: rgba(244,63,94,0.2); color: #FDA4AF; border: 1px solid rgba(253,164,175,0.3); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+    .pm-title { font-size: 22px; font-weight: 800; color: #F8FAFC; margin-bottom: 6px; }
+    .pm-subtitle { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 20px; }
+    .spec-section { background: #0F172A; border: 1px solid #334155; border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #CBD5E1; }
+    .spec-section h4 { color: #38BDF8; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .link-portal { display: inline-flex; align-items: center; gap: 6px; color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 700; margin-top: 10px; }
+    .link-portal:hover { text-decoration: underline; }
+
+    /* RIGHT: MOBILE DEMO */
+    .phone-wrapper {
+      width: 410px;
+      height: 850px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 0 0 3px #334155, 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--slate-50);
+      border-radius: 38px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--slate-900);
+      position: relative;
+    }
+    .status-bar { height: 40px; padding: 10px 22px 0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--slate-700); }
+    .phone-content { flex: 1; overflow-y: auto; padding: 10px 16px 80px; scrollbar-width: none; }
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* Top Nav */
+    .screen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .screen-header h2 { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+
+    /* Safety Compass Card */
+    .compass-card {
+      background: linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%);
+      border: 1.5px solid #FFE4E6;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .compass-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .compass-badge { font-size: 11px; font-weight: 800; background: var(--rose-500); color: #fff; padding: 3px 10px; border-radius: var(--radius-full); }
+    
+    .dial-display-grid { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .circle-dial { width: 72px; height: 72px; flex-shrink: 0; position: relative; }
+    .dial-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .dial-bg { stroke: #FFE4E6; stroke-width: 5; fill: none; }
+    .dial-bar { stroke: var(--teal-600); stroke-width: 5; stroke-linecap: round; fill: none; stroke-dasharray: 100; stroke-dashoffset: 20; transition: stroke-dashoffset 0.5s; }
+    .dial-center { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: var(--teal-600); }
+
+    .dial-text-box h3 { font-size: 16px; font-weight: 800; color: var(--teal-600); margin-bottom: 3px; }
+    .dial-text-box p { font-size: 11px; color: var(--slate-500); line-height: 1.4; }
+
+    .med-limits-bar { background: #FFFFFF; border-radius: 10px; padding: 8px 12px; border: 1px solid var(--slate-200); font-size: 11px; color: var(--slate-700); display: flex; justify-content: space-between; }
+
+    /* Chart Box */
+    .chart-box { background: #fff; border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--slate-200); margin-bottom: 14px; box-shadow: var(--shadow-card); }
+    .chart-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
+    canvas#tempChart { width: 100%; height: 130px; display: block; }
+
+    /* Quick Action Buttons */
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .act-btn { border: none; border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-card); transition: all 0.2s; }
+    .act-btn-temp { background: linear-gradient(135deg, var(--rose-500), var(--rose-600)); color: #fff; }
+    .act-btn-med { background: linear-gradient(135deg, var(--indigo-600), #4338CA); color: #fff; }
+
+    /* Symptom Checklist */
+    .symptom-sec { background: #fff; border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--slate-200); }
+    .sym-h { font-size: 13px; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .sym-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sym-chip { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 10px; padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--slate-700); cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .sym-chip.active { background: #FFF1F2; border-color: #FECDD3; color: var(--rose-600); }
+
+    /* Modal Warning */
+    .modal-over { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.6); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+    .modal-box { background: #fff; border-radius: 20px; padding: 20px; width: 100%; }
+    .modal-box h3 { font-size: 15px; font-weight: 800; color: var(--rose-600); margin-bottom: 8px; }
+    .modal-box p { font-size: 12px; color: var(--slate-600); line-height: 1.5; margin-bottom: 16px; }
+    .modal-btns { display: flex; gap: 8px; }
+    .m-btn { flex: 1; padding: 10px 0; border: none; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="layout-grid">
+  <!-- LEFT PANEL: PM DETAILED FEATURE SPECIFICATION -->
+  <aside class="pm-spec-panel">
+    <div class="badge-nav">📑 PAGE 2 / 6 · 儿童感冒急性病程与用药专护</div>
+    <h1 class="pm-title">儿童感冒发热监护与安全用药看板</h1>
+    <p class="pm-subtitle">
+      针对家长最恐惧的<b>“夜间高烧惊厥、忘记录上次服药时间、混淆布洛芬与对乙酰氨基酚安全间隔”</b>痛点打造的医疗防呆专护看板。
+    </p>
+
+    <div class="spec-section">
+      <h4>🛡️ 1. 退热药安全倒计时罗盘 (Core Safety Engine)</h4>
+      • <b>智能识别两种核心小儿退热成分</b>：
+        <div style="margin: 4px 0 4px 8px;">
+          - <b>对乙酰氨基酚 (泰诺林)</b>：最小安全间隔 <b>4 小时</b>，建议 4-6 小时；<br>
+          - <b>布洛芬 (美林)</b>：最小安全间隔 <b>6 小时</b>，建议 6-8 小时。
+        </div>
+      • <b>强防呆拦截规则</b>：当距离上次服药时间小于法定最小间隔时，罗盘显示红色锁定并禁用或弹出强警告，避免肝肾代谢过载；<br>
+      • <b>24小时频次上限</b>：小儿退热药 24 小时内严控不得超过 <b>4 次</b>。看板实时动态统计并预警。
+    </div>
+
+    <div class="spec-section">
+      <h4>📈 2. 双轴体温与用药起伏时间轴</h4>
+      • 将体温测量点与用药事件点叠加在同一时间坐标系上。<br>
+      • 自动标注服药后 45-60 分钟的出汗降温反应，直观观察退热药是否起效、维持时长、以及何时发生反弹。
+    </div>
+
+    <div class="spec-section">
+      <h4>🚨 3. 儿科紧急送医红线指南</h4>
+      • 3个月以下婴儿体温 ≥ 38.0℃ 必须就医；<br>
+      • 伴随精神萎靡、嗜睡唤醒困难、剧烈咳嗽咳喘有喘鸣音、惊厥抽搐或皮疹时，高亮提示“立即就诊”。
+    </div>
+
+    <div class="spec-section">
+      <h4>🔄 4. 互动交互测试指南</h4>
+      👉 <b>在右侧手机界面中轻点操作：</b><br>
+      1. 点击 <b>「+ 测体温」</b>，模拟测得 39.0℃ 高温并刷新走势图；<br>
+      2. 点击 <b>「+ 服退热药」</b>，若在安全期内将重置倒计时罗盘；若在锁定期将触发防呆弹窗；<br>
+      3. 点选下方 <b>伴随症状标签</b>，实时记录流涕、咳嗽形态与精神状态。
+    </div>
+
+    <a href="index.html" class="link-portal">➔ 返回《安康记》全页面设计大厅 (Index Portal)</a>
+  </aside>
+
+  <!-- RIGHT PANEL: INTERACTIVE MOBILE DEMO -->
+  <main class="phone-wrapper">
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>09:41</span>
+        <span>5G 📶 98%</span>
+      </div>
+
+      <!-- Phone Content -->
+      <div class="phone-content">
+        <!-- Screen Header -->
+        <div class="screen-header">
+          <h2><span>🤒</span> 安安 · 感冒发热监护</h2>
+          <button style="background:var(--slate-100);border:1px solid var(--slate-200);padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;color:var(--slate-700);cursor:pointer;" onclick="location.href='page_4_doctor_summary.html'">就诊单 ➔</button>
+        </div>
+
+        <!-- 1. Safety Compass Card -->
+        <div class="compass-card">
+          <div class="compass-title-row">
+            <span class="compass-badge">🛡️ 安全防呆罗盘</span>
+            <span style="font-size:11px;color:var(--slate-500);font-weight:600;">上次: 对乙酰氨基酚 3.5ml</span>
+          </div>
+
+          <div class="dial-display-grid">
+            <div class="circle-dial">
+              <svg class="dial-svg" viewBox="0 0 36 36">
+                <path class="dial-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                <path class="dial-bar" id="compassBar" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              </svg>
+              <div class="dial-center" id="dialCenterText">
+                <span>安全</span>
+              </div>
+            </div>
+
+            <div class="dial-text-box">
+              <h3 id="compassStateTitle">处于安全给药窗口</h3>
+              <p id="compassStateDesc">距上次服药已过 <b>4.5小时</b>（最小间隔4小时）。若体温超过 38.5℃ 且难受可按需给药。</p>
+            </div>
+          </div>
+
+          <div class="med-limits-bar">
+            <span>24小时服药次数：<b>2 次</b> / 上限 4 次</span>
+            <span style="color:var(--teal-600);font-weight:700;">● 安全余量足</span>
+          </div>
+        </div>
+
+        <!-- 2. Dual-Axis Temp & Med Chart -->
+        <div class="chart-box">
+          <div class="chart-h">
+            <span>📈 近24小时体温与用药走势</span>
+            <span style="font-size:10px;color:var(--rose-500);">警戒线 38.5℃</span>
+          </div>
+          <canvas id="tempChart" width="340" height="130"></canvas>
+          <div style="font-size:10px;color:var(--slate-500);display:flex;justify-content:space-between;margin-top:6px;">
+            <span>峰值: 39.1℃ (昨日19:15)</span>
+            <span>💊 胶囊图标代表服退烧药时刻</span>
+          </div>
+        </div>
+
+        <!-- 3. Fast Action Row -->
+        <div class="action-row">
+          <button class="act-btn act-btn-temp" onclick="addTempQuick()">
+            <span>🌡️</span> 测体温 (38.8℃)
+          </button>
+          <button class="act-btn act-btn-med" onclick="triggerMedAction()">
+            <span>💊</span> 记服退热药
+          </button>
+        </div>
+
+        <!-- 4. Symptoms Checklist -->
+        <div class="symptom-sec">
+          <div class="sym-h">
+            <span>👀 伴随体征与精神状态</span>
+            <span style="font-size:11px;color:var(--teal-600);">点击打卡</span>
+          </div>
+          <div class="sym-grid">
+            <div class="sym-chip active" onclick="this.classList.toggle('active')">
+              <span>🤧 流清涕</span><span>✓</span>
+            </div>
+            <div class="sym-chip active" onclick="this.classList.toggle('active')">
+              <span>🗣️ 偶发干咳</span><span>✓</span>
+            </div>
+            <div class="sym-chip" onclick="this.classList.toggle('active')">
+              <span>🥣 食欲下降</span><span>+</span>
+            </div>
+            <div class="sym-chip" onclick="this.classList.toggle('active')">
+              <span>😴 嗜睡发蔫</span><span>+</span>
+            </div>
+            <div class="sym-chip" onclick="this.classList.toggle('active')">
+              <span>🤮 呕吐反胃</span><span>+</span>
+            </div>
+            <div class="sym-chip" onclick="this.classList.toggle('active')">
+              <span>🥶 发冷寒战</span><span>+</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Warning Modal -->
+      <div class="modal-over" id="warningModal">
+        <div class="modal-box">
+          <h3>⚠️ 退热药给药防呆拦截！</h3>
+          <p>
+            系统检测到当前距离上次服用对乙酰氨基酚仅过去 <b>1.5 小时</b>，未达到 4 小时最小安全间隔！频繁服药可能导致蓄积性肝损伤，建议优先进行温水擦浴或松解衣物。
+          </p>
+          <div class="modal-btns">
+            <button class="m-btn" style="background:var(--slate-100);color:var(--slate-700);" onclick="closeModal()">取消并观察</button>
+            <button class="m-btn" style="background:var(--rose-500);color:#fff;" onclick="closeModal();alert('遵医嘱二次确认记录')">仍要记录(遵医嘱)</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  let canMedicate = true;
+
+  function renderChart() {
+    const cvs = document.getElementById('tempChart');
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    const w = cvs.width;
+    const h = cvs.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Reference lines
+    const temps = [36.5, 37.5, 38.5, 39.5];
+    ctx.strokeStyle = '#F1F5F9';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '10px -apple-system, sans-serif';
+
+    temps.forEach(t => {
+      const y = h - ((t - 36.0) / 4.0) * (h - 26) - 13;
+      ctx.beginPath();
+      ctx.moveTo(35, y);
+      ctx.lineTo(w - 10, y);
+      ctx.stroke();
+      ctx.fillText(t.toFixed(1) + '°', 5, y + 3);
+    });
+
+    // 38.5 alert dashed line
+    const alertY = h - ((38.5 - 36.0) / 4.0) * (h - 26) - 13;
+    ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(35, alertY);
+    ctx.lineTo(w - 10, alertY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const data = [
+      { t: '12:00', val: 37.2, med: null },
+      { t: '16:00', val: 38.3, med: null },
+      { t: '19:15', val: 39.1, med: '泰诺林' },
+      { t: '22:00', val: 37.4, med: null },
+      { t: '02:00', val: 38.0, med: null },
+      { t: '04:45', val: 38.9, med: '泰诺林' },
+      { t: '09:15', val: 38.5, med: null }
+    ];
+
+    const stepX = (w - 60) / (data.length - 1);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 2.5;
+
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+
+      ctx.beginPath();
+      ctx.fillStyle = pt.val >= 38.5 ? '#F43F5E' : '#10B981';
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (pt.med) {
+        ctx.fillStyle = '#6366F1';
+        ctx.beginPath();
+        ctx.arc(x, y - 12, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('💊', x - 4, y - 8);
+      }
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(pt.t, x - 12, h - 3);
+    });
+  }
+
+  function addTempQuick() {
+    alert('已记录体温 38.8℃ (腋温)，发热预警生效中！');
+    renderChart();
+  }
+
+  function triggerMedAction() {
+    if (canMedicate) {
+      alert('已记录服用美林 (布洛芬 3.0ml)，倒计时罗盘已锁定 6 小时！');
+      canMedicate = false;
+      document.getElementById('compassBar').style.stroke = 'var(--rose-500)';
+      document.getElementById('compassBar').style.strokeDashoffset = '80';
+      document.getElementById('dialCenterText').innerHTML = '<span style="color:var(--rose-500)">锁定</span>';
+      document.getElementById('compassStateTitle').innerText = '退热药安全等待期 (倒计时 5.9h)';
+      document.getElementById('compassStateTitle').style.color = 'var(--rose-600)';
+      document.getElementById('compassStateDesc').innerText = '刚刚给药美林 3.0ml。严防重复服药，下次可用时间：15:40 之后。';
+    } else {
+      document.getElementById('warningModal').style.display = 'flex';
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('warningModal').style.display = 'none';
+  }
+
+  window.onload = renderChart;
+</script>
+
+</body>
+</html>
