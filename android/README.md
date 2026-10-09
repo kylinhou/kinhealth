@@ -1,4 +1,4 @@
-# 🤖 安康记 Android 客户端工程说明
+﻿# 🤖 安康记 Android 客户端工程说明
 
 > 基于现代 Android 原生架构与规范打造的家庭健康管理移动应用。
 
@@ -18,11 +18,11 @@
 ## 📂 源码目录结构
 
 ```
-android/app/src/main/java/com/ankangcare/app/
-├── AnkangApplication.kt            # 应用生命周期基类，初始化本地 Room 数据库
+android/app/src/main/java/com/KinHealth/app/
+├── KinHealthApplication.kt            # 应用生命周期基类，初始化本地 Room 数据库
 ├── MainActivity.kt                 # 单 Activity 声明式 Compose 主容器
 ├── data/                           # 数据层 (Room)
-│   ├── AnkangDatabase.kt           # 数据库配置与预置种子数据 (安安、张大爷、林女士)
+│   ├── KinHealthDatabase.kt           # 数据库配置与预置种子数据 (安安、张大爷、林女士)
 │   ├── MemberEntity.kt             # 家庭成员数据实体
 │   ├── HealthRecordEntity.kt       # 健康流水记录实体
 │   ├── MemberDao.kt                # 成员数据访问接口
@@ -39,7 +39,7 @@ android/app/src/main/java/com/ankangcare/app/
 └── ui/                             # 表现层 (Compose UI)
     ├── theme/                      # 暖愈医疗配色规范 (Teal/Rose/Amber/Slate)
     ├── components/                 # 通用组件 (4-Tab栏/微型身份胶囊/体温步进器/布里斯托点选)
-    ├── navigation/                 # 4-Tab 框架与状态调度 (AnkangMainApp)
+    ├── navigation/                 # 4-Tab 框架与状态调度 (KinHealthMainApp)
     ├── dashboard/                  # Tab 1: 今日看板 (大头像滑轨 + 情境聚焦卡片)
     ├── quickinput/                 # Tab 2: 极速记 (2-Tap 体温/排便保存)
     ├── dossier/                    # Tab 3: 健康档案·一人一档 (三大资产视角 + 门诊长单)
@@ -57,3 +57,4 @@ android/app/src/main/java/com/ankangcare/app/
    - `MedicationCompassHelper` 精确按毫秒时间戳计算服药安全窗口，严格阻止多位家长重叠喂药。
 3. **布里斯托 7 级图谱极速记**:
    - 2 次轻触内完成大便性状与体温数值保存，0 毫秒完成本地持久化。
+

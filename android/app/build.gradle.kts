@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ankangcare.app"
+    namespace = "com.kinhealth.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ankangcare.app"
+        applicationId = "com.kinhealth.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -84,3 +84,4 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 }
+

@@ -1,4 +1,4 @@
-name: Build Android APK
+﻿name: Build Android APK
 
 on:
   push:
@@ -38,6 +38,7 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ankangcare-debug-apk
+          name: kinhealth-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
+

@@ -1,4 +1,4 @@
-# 🌿 安康记 (AnkangCare) - 全家健康管理系统
+﻿# 🌿 安康记 (KinHealth) - 全家健康管理系统
 
 > **产品定位**：面向中国家庭多人口（婴幼儿·老年长辈·中坚成人）的暖愈极简健康监护应用。  
 > **核心架构**：标准 4-Tab 极简框架 (`[ 🏠 今日看板 ]` - `[ ➕ 极速记 ]` - `[ 📁 健康档案 ]` - `[ ⚙️ 家庭设置 ]`)，贯彻“一人一档（One Dossier Per Person）”与“发热退热药防重复给药安全罗盘”。
@@ -50,3 +50,4 @@ c:\AIHome\安康记\
 - 🎨 [高保真原型交互大厅 (design/prototypes/index.html)](file:///c:/AIHome/%E5%AE%89%E5%BA%B7%E8%AE%B0/design/prototypes/index.html)
 - 📌 [开发流程与前置 Demo 规范说明](file:///c:/AIHome/%E5%AE%89%E5%BA%B7%E8%AE%B0/docs/00_%E8%A7%84%E8%8C%83_%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B%E4%B8%8E%E5%89%8D%E7%BD%AEDemo%E6%9C%BA%E5%88%B6.md)
 - 🤖 [Android 工程架构与源码说明](file:///c:/AIHome/%E5%AE%89%E5%BA%B7%E8%AE%B0/android/README.md)
+
