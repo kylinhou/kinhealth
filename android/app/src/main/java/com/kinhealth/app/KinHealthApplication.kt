@@ -1,4 +1,4 @@
-﻿package com.kinhealth.app
+package com.kinhealth.app
 
 import android.app.Application
 import com.kinhealth.app.data.KinHealthDatabase
@@ -9,11 +9,10 @@ class KinHealthApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
 
     val database by lazy {
-        KinHealthDatabase.getDatabase(this, applicationScope)
+        KinHealthDatabase.getDatabase(this)
     }
 
     override fun onCreate() {
         super.onCreate()
     }
 }
-

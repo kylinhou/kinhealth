@@ -1,4 +1,4 @@
-﻿package com.kinhealth.app.data
+package com.kinhealth.app.data
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -19,5 +19,7 @@ interface MemberDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(members: List<MemberEntity>)
-}
 
+    @Query("DELETE FROM members WHERE id = :memberId")
+    suspend fun deleteMemberById(memberId: String)
+}

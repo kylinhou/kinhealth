@@ -1,4 +1,4 @@
-﻿package com.kinhealth.app.ui.quickinput
+package com.kinhealth.app.ui.quickinput
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,23 +7,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kinhealth.app.data.MemberEntity
 import com.kinhealth.app.model.BristolStoolScale
-import com.kinhealth.app.repository.MemberContextRepository
 import com.kinhealth.app.ui.components.BristolPicker
 import com.kinhealth.app.ui.components.TemperatureStepper
 import com.kinhealth.app.ui.theme.Teal600
 
 @Composable
 fun QuickInputScreen(
-    onRecordSaved: () -> Unit
+    members: List<MemberEntity>,
+    currentMemberId: String,
+    onRecordSaved: () -> Unit,
+    onAddMemberClick: () -> Unit
 ) {
-    val currentMemberId by MemberContextRepository.currentMemberId.collectAsState()
-    var currentTemp by remember { mutableStateOf(38.8) }
+    val activeMember = members.find { it.id == currentMemberId } ?: members.firstOrNull()
+    var currentTemp by remember { mutableStateOf(37.2) }
     var selectedBristol by remember { mutableStateOf(4) }
     var saveMessage by remember { mutableStateOf<String?>(null) }
 
@@ -36,8 +40,50 @@ fun QuickInputScreen(
             .padding(bottom = 80.dp)
     ) {
         Text(text = "➕ 极速录入中心", fontSize = 18.sp, fontWeight = FontWeight.Black)
+
+        if (members.isEmpty() || activeMember == null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                shadowElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "📝", fontSize = 36.sp)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "暂无健康看护对象",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF0F172A)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "健康指标（体温、排便、用药）需关联具体家庭成员。请先添加您的第一位家人档案。",
+                        fontSize = 12.sp,
+                        color = Color(0xFF64748B),
+                        lineHeight = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = onAddMemberClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Teal600),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("➕ 立即添加家庭成员", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            return@Column
+        }
+
         Text(
-            text = "正在为 [${if (currentMemberId == "baby") "安安" else if (currentMemberId == "grandpa") "张大爷" else "林女士"}] 记健康指标",
+            text = "正在为 [${activeMember.avatar} ${activeMember.name}] 记录实时健康指标",
             fontSize = 11.sp,
             color = Color(0xFF64748B)
         )
@@ -67,7 +113,7 @@ fun QuickInputScreen(
         // 3. 极速保存按钮 (2-Tap 原则)
         Button(
             onClick = {
-                saveMessage = "✅ 已成功保存！体温 ${String.format("%.1f", currentTemp)}℃，布里斯托 ${selectedBristol} 型"
+                saveMessage = "✅ 已成功为 ${activeMember.name} 保存！体温 ${String.format("%.1f", currentTemp)}℃，布里斯托 ${selectedBristol} 型"
                 onRecordSaved()
             },
             colors = ButtonDefaults.buttonColors(containerColor = Teal600),
@@ -95,4 +141,3 @@ fun QuickInputScreen(
         }
     }
 }
-
