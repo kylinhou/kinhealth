@@ -8,8 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.kinhealth.app.KinHealthApplication
+import com.kinhealth.app.data.HealthRecordEntity
 import com.kinhealth.app.repository.MemberContextRepository
 import com.kinhealth.app.ui.components.AddMemberDialog
+import com.kinhealth.app.ui.components.BatchSymptomDialog
 import com.kinhealth.app.ui.components.KinBottomBar
 import com.kinhealth.app.ui.components.KinTab
 import com.kinhealth.app.ui.dashboard.DashboardScreen
@@ -17,6 +19,7 @@ import com.kinhealth.app.ui.dossier.HealthDossierScreen
 import com.kinhealth.app.ui.quickinput.QuickInputScreen
 import com.kinhealth.app.ui.settings.FamilySettingsScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,8 +41,35 @@ fun KinHealthMainApp() {
         }
     }
 
+    // 响应式观察当前成员关联的所有健康记录
+    val currentMemberRecords by remember(currentMemberId) {
+        if (currentMemberId != null) {
+            context.database.healthRecordDao().getRecordsByMember(currentMemberId!!)
+        } else {
+            flowOf(emptyList())
+        }
+    }.collectAsState(initial = emptyList())
+
+    val activeMember = members.find { it.id == currentMemberId } ?: members.firstOrNull()
+
     var currentTab by remember { mutableStateOf(KinTab.DASHBOARD) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showBatchSymptomDialog by remember { mutableStateOf(false) }
+    var batchDialogInitialOffset by remember { mutableStateOf(0) }
+
+    // 持久化保存记录的统一回调
+    val onSaveHealthRecord: (HealthRecordEntity) -> Unit = { record ->
+        coroutineScope.launch(Dispatchers.IO) {
+            context.database.healthRecordDao().insertRecord(record)
+        }
+    }
+
+    // 单条记录删除撤回
+    val onDeleteHealthRecord: (Long) -> Unit = { recordId ->
+        coroutineScope.launch(Dispatchers.IO) {
+            context.database.healthRecordDao().deleteRecordById(recordId)
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -57,20 +87,26 @@ fun KinHealthMainApp() {
             when (currentTab) {
                 KinTab.DASHBOARD -> DashboardScreen(
                     members = members,
-                    currentMemberId = currentMemberId,
+                    currentMemberId = currentMemberId ?: "",
+                    records = currentMemberRecords,
                     onSelectMember = { MemberContextRepository.setCurrentMember(it) },
                     onNavigateToQuickInput = { currentTab = KinTab.QUICK_INPUT },
+                    onOpenBatchSymptomInput = { offset ->
+                        batchDialogInitialOffset = offset
+                        showBatchSymptomDialog = true
+                    },
+                    onDeleteRecord = onDeleteHealthRecord,
                     onAddMemberClick = { showAddDialog = true }
                 )
                 KinTab.QUICK_INPUT -> QuickInputScreen(
                     members = members,
-                    currentMemberId = currentMemberId,
-                    onRecordSaved = { currentTab = KinTab.DASHBOARD },
+                    currentMemberId = currentMemberId ?: "",
+                    onSaveRecord = onSaveHealthRecord,
                     onAddMemberClick = { showAddDialog = true }
                 )
                 KinTab.DOSSIER -> HealthDossierScreen(
                     members = members,
-                    currentMemberId = currentMemberId,
+                    currentMemberId = currentMemberId ?: "",
                     onSelectMember = { MemberContextRepository.setCurrentMember(it) },
                     onAddMemberClick = { showAddDialog = true }
                 )
@@ -94,7 +130,7 @@ fun KinHealthMainApp() {
                 )
             }
 
-            // 真正的添加家庭成员交互弹窗
+            // 1. 添加家庭成员交互弹窗
             if (showAddDialog) {
                 AddMemberDialog(
                     onDismissRequest = { showAddDialog = false },
@@ -104,6 +140,19 @@ fun KinHealthMainApp() {
                             MemberContextRepository.setCurrentMember(newEntity.id)
                         }
                         showAddDialog = false
+                    }
+                )
+            }
+
+            // 2. 首页唤起的感冒病程批量记录交互抽屉 (支持所选日期联动)
+            if (showBatchSymptomDialog && activeMember != null) {
+                BatchSymptomDialog(
+                    member = activeMember,
+                    initialDateOffsetDays = batchDialogInitialOffset,
+                    onDismissRequest = { showBatchSymptomDialog = false },
+                    onConfirm = { newRecord ->
+                        onSaveHealthRecord(newRecord)
+                        showBatchSymptomDialog = false
                     }
                 )
             }

@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>P7: 感冒病程日历与批量症状极速录入 - 安康记 Demo & 功能说明</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --rose-500: #F43F5E;
+      --rose-600: #E11D48;
+      --teal-600: #0D9488;
+      --teal-700: #0F766E;
+      --amber-500: #F59E0B;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-700: #334155;
+      --slate-800: #1E293B;
+      --slate-900: #0F172A;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #0B1120;
+      color: #E2E8F0;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .layout-grid {
+      display: flex;
+      gap: 32px;
+      max-width: 1360px;
+      width: 100%;
+      align-items: flex-start;
+    }
+
+    /* SPEC PANEL (LEFT) */
+    .pm-spec-panel {
+      flex: 1.1;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      color: #E2E8F0;
+    }
+
+    /* PHONE CONTAINER (RIGHT) */
+    .phone-wrapper {
+      width: 410px;
+      height: 850px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 0 0 3px #334155, 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #F8FAFC;
+      border-radius: 38px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: #0F172A;
+      position: relative;
+    }
+
+    /* 滚动条隐藏 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 抽屉弹出动画 */
+    .drawer-backdrop {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      transition: opacity 0.25s ease;
+    }
+    .drawer-sheet {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 标签选中态 */
+    .tag-chip {
+      transition: all 0.18s ease;
+    }
+    .tag-chip.active {
+      background-color: #0D9488 !important;
+      color: #FFFFFF !important;
+      border-color: #0D9488 !important;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+      transform: translateY(-1px);
+    }
+    .tag-chip-rose.active {
+      background-color: #F43F5E !important;
+      border-color: #F43F5E !important;
+      box-shadow: 0 2px 8px rgba(244, 63, 94, 0.25);
+    }
+
+    /* 日历卡片激活态 */
+    .date-card.active {
+      background: #FFFFFF;
+      border-color: #0D9488;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.18);
+      transform: translateY(-2px);
+    }
+  </style>
+
+  <!-- 支持 view=phone 或 view=spec 嵌入 -->
+  <script>
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const view = urlParams.get('view');
+      if (view === 'phone') {
+        const s = document.createElement('style');
+        s.textContent = `
+          body { padding: 0 !important; margin: 0 !important; background: transparent !important; min-height: 100% !important; overflow-x: hidden !important; }
+          .layout-grid { gap: 0 !important; max-width: 100% !important; justify-content: center !important; }
+          .pm-spec-panel { display: none !important; }
+          .phone-wrapper { margin: 0 auto !important; box-shadow: none !important; border-radius: 0 !important; background: transparent !important; padding: 0 !important; width: 100% !important; max-width: 430px !important; height: 100vh !important; }
+          .phone-screen { border-radius: 0 !important; height: 100% !important; }
+        `;
+        document.head.appendChild(s);
+      } else if (view === 'spec') {
+        const s = document.createElement('style');
+        s.textContent = `
+          body { padding: 20px !important; margin: 0 !important; background: #1E293B !important; min-height: 100% !important; }
+          .layout-grid { gap: 0 !important; max-width: 100% !important; }
+          .phone-wrapper { display: none !important; }
+          .pm-spec-panel { width: 100% !important; flex: 1 !important; border: none !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+        `;
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</head>
+<body>
+
+<div class="layout-grid">
+
+  <!-- =========================================================================
+       LEFT: PRD SPECIFICATION SHEET
+       ========================================================================= -->
+  <aside class="pm-spec-panel">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold mb-3">
+      <span>PAGE 07</span> · <span>核心场景突破</span>
+    </div>
+    <h1 class="text-2xl font-black text-white mb-2">感冒病程日历与批量症状极速录入</h1>
+    <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+      解决家庭成员急性病程（发烧、咳嗽、流感）中“症状多样无法批量记、夜间疲劳补录困难、缺少按天病程演变回溯”的三大交互痛点。
+    </p>
+
+    <!-- 痛点与设计对策 -->
+    <div class="space-y-4 text-xs text-slate-300">
+      
+      <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
+        <h4 class="text-teal-400 font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-calendar-week"></i> 1. 病程日历周滑轨 (Timeline Weekstrip)
+        </h4>
+        <p class="text-slate-400 leading-relaxed">
+          • <b>感冒天数标识</b>：发病日期标记为 Day 1，清晰展示病程发展阶段。<br>
+          • <b>卡片微摘要</b>：每个日期包含当日最高体温标签（颜色随严重度变化：红/橙/绿）、用药次数药丸徽章及核心症状，一眼洞悉“病情是好转还是加重”。<br>
+          • <b>即时日期切换</b>：点击任意一天，下方全景瀑布流毫秒级联动呈现该日全部记录。
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
+        <h4 class="text-rose-400 font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left"></i> 2. 补录极速时间定位器 (Fast Time Anchor)
+        </h4>
+        <p class="text-slate-400 leading-relaxed">
+          • <b>两级快捷芯片</b>：解决夜间/事后补录时拨动时间滚轮的繁琐流程。<br>
+          • <b>一级日期快速胶囊</b>：<code>[今天]</code>、<code>[昨天]</code>、<code>[前天]</code>，无需弹出全屏日历。<br>
+          • <b>二级时段快速预设</b>：<code>[刚才/当前]</code>、<code>[上午 09:00]</code>、<code>[下午 15:00]</code>、<code>[夜间 21:00]</code>，单手一触即达。
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
+        <h4 class="text-amber-400 font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-layer-group"></i> 3. 标签矩阵批量录入 (Matrix Multi-Select)
+        </h4>
+        <p class="text-slate-400 leading-relaxed">
+          • <b>告别单个录入</b>：咳嗽、鼻涕、精神、体温、用药一屏汇聚，支持并发点选。<br>
+          • <b>咳嗽维度</b>：偶尔轻咳、频繁阵咳、夜间剧烈呛咳、有痰/干咳。<br>
+          • <b>鼻涕维度</b>：流清涕、黏黄浓涕、严重鼻塞。<br>
+          • <b>警报体征</b>：嗜睡蔫弱、食欲废绝、频繁呕吐（触发醒目安全提示）。<br>
+          • <b>一键落库</b>：多选 3~5 项症状仅需 4 秒，极大释放家长夜间心智负荷。
+        </p>
+      </div>
+
+      <div class="p-3 bg-teal-950/40 border border-teal-800/40 rounded-xl text-teal-300 text-[11px] leading-relaxed">
+        💡 <b>体验提示</b>：请在右侧手机视图中，点击顶部的【10/11 周六 (D2)】与【10/12 今天 (D3)】感受日历联动；点击底部右下角的 <b>【+ 记录症状】</b> 唤起批量录入抽屉，勾选并保存即可见实时动态更新！
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       RIGHT: INTERACTIVE MOBILE DEMO
+       ========================================================================= -->
+  <div class="phone-wrapper">
+    <div class="phone-screen">
+
+      <!-- 状态栏 -->
+      <div class="h-11 px-6 pt-3 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+        <span>09:41</span>
+        <div class="flex items-center gap-1.5 text-slate-700 text-[11px]">
+          <i class="fa-solid fa-signal"></i>
+          <i class="fa-solid fa-wifi"></i>
+          <i class="fa-solid fa-battery-full text-xs"></i>
+        </div>
+      </div>
+
+      <!-- 顶栏导航 -->
+      <header class="px-4 py-2 flex items-center justify-between border-b border-slate-100 bg-white shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 font-bold text-sm">
+            安
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-sm text-slate-800">安安 (11个月)</span>
+              <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-rose-50 text-rose-600 border border-rose-200 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                感冒监护中
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400">急性病程第 3 天 · 上呼吸道感染</p>
+          </div>
+        </div>
+        <button class="w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center text-xs">
+          <i class="fa-solid fa-ellipsis"></i>
+        </button>
+      </header>
+
+      <!-- 主视图区域：可滚动 -->
+      <div class="flex-1 overflow-y-auto no-scrollbar pb-24">
+
+        <!-- 1. 病程日历滑轨 (Timeline Weekstrip) -->
+        <div class="p-3 bg-white border-b border-slate-100">
+          <div class="flex items-center justify-between mb-2 px-1">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-day text-teal-600"></i> 病程演变日历
+            </span>
+            <span class="text-[11px] text-teal-600 font-medium">共 5 天记录</span>
+          </div>
+
+          <!-- 横向滑动日期卡片 -->
+          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 text-center" id="dateCardsStrip">
+            <!-- 动态生成日期卡片 -->
+          </div>
+        </div>
+
+        <!-- 2. 当日总体概览卡片 (Daily Metric Banner) -->
+        <div class="p-4 space-y-3">
+          <div class="bg-gradient-to-br from-white to-slate-50 border border-slate-200/80 rounded-2xl p-3.5 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span id="bannerDayTag" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200">病程 D3</span>
+                <span id="bannerDateTitle" class="text-xs font-bold text-slate-700">10月12日 (今天)</span>
+              </div>
+              <span id="bannerStatusPill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                低热转平稳
+              </span>
+            </div>
+
+            <!-- 核心数据三栏 -->
+            <div class="grid grid-cols-3 gap-2 text-center pt-1 border-t border-slate-100">
+              <div class="bg-white p-2 rounded-xl border border-slate-100">
+                <div class="text-[10px] text-slate-400">最高体温</div>
+                <div class="text-sm font-extrabold text-rose-500 mt-0.5" id="bannerMaxTemp">38.2℃</div>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-slate-100">
+                <div class="text-[10px] text-slate-400">退热服药</div>
+                <div class="text-sm font-extrabold text-slate-800 mt-0.5" id="bannerMedCount">0 次</div>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-slate-100">
+                <div class="text-[10px] text-slate-400">核心症状</div>
+                <div class="text-xs font-bold text-slate-700 mt-1 truncate" id="bannerCoreSymp">偶咳/流清涕</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 当日全景流水瀑布流 (Timeline Events Stream) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-xs font-bold text-slate-700">当日病情动态流水</span>
+              <span class="text-[10px] text-slate-400" id="eventCountText">共 3 条记录</span>
+            </div>
+
+            <!-- 事件卡片容器 -->
+            <div class="space-y-2.5" id="timelineContainer">
+              <!-- 动态填充 -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 底部常驻悬浮操作栏 -->
+      <div class="absolute bottom-4 left-4 right-4 flex items-center gap-2">
+        <button onclick="openDrawer(true)" class="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-teal-600/30 flex items-center justify-center gap-2 transition-transform active:scale-95">
+          <i class="fa-solid fa-plus-circle text-sm"></i>
+          <span id="bottomActionText">记录今日症状表现</span>
+        </button>
+        <button onclick="openDoctorReportModal()" class="py-3 px-3.5 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-2xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-1.5" title="导出医生问诊长图">
+          <i class="fa-solid fa-file-waveform text-teal-600"></i>
+          <span>长图</span>
+        </button>
+      </div>
+
+      <!-- =========================================================================
+           4. 极速批量症状录入抽屉 (Bottom Sheet Drawer)
+           ========================================================================= -->
+      <div id="drawerOverlay" class="absolute inset-0 drawer-backdrop opacity-0 pointer-events-none z-50 flex flex-col justify-end">
+        <div id="drawerContent" class="w-full bg-white rounded-t-3xl shadow-2xl drawer-sheet transform translate-y-full flex flex-col max-h-[88%] border-t border-slate-100">
+          
+          <!-- 抽屉顶部把手与标题 -->
+          <div class="p-3.5 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+              <span class="text-xs font-extrabold text-slate-800">感冒病程 · 极速批量记录</span>
+            </div>
+            <button onclick="closeDrawer()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- 抽屉滚动内容 -->
+          <div class="p-4 overflow-y-auto no-scrollbar space-y-4 flex-1 text-xs">
+
+            <!-- 1. 时间定位器 (快捷 + 精确自定义) -->
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/70 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-regular fa-clock text-teal-600"></i> 记录时间
+                </span>
+                <span class="text-[10px] text-teal-700 font-mono font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-200" id="selectedTimeDisplay">2026-10-12 11:30</span>
+              </div>
+
+              <!-- 一级：日期胶囊 (今天/昨天/前天 + 精确自定义日期) -->
+              <div class="flex gap-1.5">
+                <button type="button" onclick="selectDateChip('today')" id="dateChip_today" class="date-chip flex-1 py-1.5 text-center font-bold text-[11px] rounded-xl border border-teal-600 bg-teal-600 text-white transition-colors">今天</button>
+                <button type="button" onclick="selectDateChip('yesterday')" id="dateChip_yesterday" class="date-chip flex-1 py-1.5 text-center font-medium text-[11px] rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-colors">昨天 (10/11)</button>
+                <button type="button" onclick="selectDateChip('before')" id="dateChip_before" class="date-chip flex-1 py-1.5 text-center font-medium text-[11px] rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-colors">前天 (10/10)</button>
+                <button type="button" onclick="toggleCustomTimePanel()" id="dateChip_custom" class="date-chip py-1.5 px-2.5 text-center font-medium text-[11px] rounded-xl border border-dashed border-teal-500 bg-white text-teal-700 hover:bg-teal-50 transition-colors flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-calendar-plus text-[10px]"></i>
+                  <span>精确设定</span>
+                </button>
+              </div>
+
+              <!-- 二级：时段胶囊 (刚才/上午/下午/夜间) -->
+              <div class="grid grid-cols-4 gap-1.5 pt-0.5" id="presetPeriodsBox">
+                <button type="button" onclick="selectTimePeriod('now')" id="period_now" class="period-chip py-1 text-center font-bold text-[10px] rounded-lg border border-teal-600 bg-teal-50 text-teal-700">刚才 (现在)</button>
+                <button type="button" onclick="selectTimePeriod('morning')" id="period_morning" class="period-chip py-1 text-center text-[10px] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">上午 09:00</button>
+                <button type="button" onclick="selectTimePeriod('afternoon')" id="period_afternoon" class="period-chip py-1 text-center text-[10px] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">下午 15:00</button>
+                <button type="button" onclick="selectTimePeriod('night')" id="period_night" class="period-chip py-1 text-center text-[10px] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">夜间 21:00</button>
+              </div>
+
+              <!-- 自定义精确时间面板 (默认折叠) -->
+              <div id="customTimePickerPanel" class="hidden p-2.5 bg-white rounded-xl border border-teal-200 space-y-1.5">
+                <div class="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                  <span>选择任意具体日期与时间：</span>
+                  <button type="button" onclick="toggleCustomTimePanel()" class="text-slate-400 hover:text-slate-600 text-[10px]">收起</button>
+                </div>
+                <input type="datetime-local" id="exactDateTimeInput" onchange="onExactTimeChange(this.value)" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono text-xs focus:outline-none focus:border-teal-500">
+              </div>
+            </div>
+
+            <!-- 2. 体温与退热药 (快捷选择 + 自定义数值与自定义药品) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-temperature-three-quarters text-rose-500"></i> 体温与给药
+                </span>
+                <span class="text-[10px] text-slate-400">快捷卡片或直接输入精确℃</span>
+              </div>
+              
+              <!-- 快捷体温卡片 + 自定义体温输入框 -->
+              <div class="flex gap-1.5" id="tempChips">
+                <button type="button" onclick="selectTemp('37.0')" class="temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]">37.0℃</button>
+                <button type="button" onclick="selectTemp('37.8')" class="temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]">37.8℃</button>
+                <button type="button" onclick="selectTemp('38.5')" class="temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]">38.5℃</button>
+                <button type="button" onclick="selectTemp('39.2')" class="temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]">39.2℃</button>
+                <div class="w-24 shrink-0 relative">
+                  <input type="number" step="0.1" min="35.0" max="42.5" id="customTempInput" oninput="onCustomTempInput(this.value)" placeholder="手输℃" class="w-full py-1.5 px-2 text-center rounded-xl border border-slate-200 bg-white text-slate-800 font-bold text-[11px] focus:outline-none focus:border-rose-500 focus:bg-rose-50/30">
+                </div>
+              </div>
+
+              <!-- 退热药快捷复选 + 自定义用药 -->
+              <div class="space-y-1.5 pt-1">
+                <div class="flex gap-2">
+                  <button type="button" onclick="toggleMed(this, '美林布洛芬 4ml')" class="med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-pills text-rose-400"></i> 吃了美林 (4ml)
+                  </button>
+                  <button type="button" onclick="toggleMed(this, '泰诺林对乙酰氨基酚 3.5ml')" class="med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-pills text-teal-400"></i> 吃了泰诺林
+                  </button>
+                  <button type="button" onclick="toggleCustomMedPanel()" class="py-1.5 px-2.5 rounded-xl border border-dashed border-slate-300 bg-white text-slate-600 hover:text-teal-700 text-[10px] font-medium flex items-center justify-center gap-1 shrink-0">
+                    <i class="fa-solid fa-plus text-[9px]"></i> 其他药物
+                  </button>
+                </div>
+
+                <!-- 自定义药物展开栏 -->
+                <div id="customMedPanel" class="hidden p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div class="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>常见咳嗽感冒备药 (点选即选)：</span>
+                    <button type="button" onclick="toggleCustomMedPanel()" class="text-slate-400 text-[10px]">收起</button>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="selectCommonMed('易坦静口服液 2.5ml')" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-600 hover:border-teal-500">易坦静 2.5ml</button>
+                    <button type="button" onclick="selectCommonMed('小儿氨酚黄那敏颗粒 1包')" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-600 hover:border-teal-500">小儿氨酚黄那敏</button>
+                    <button type="button" onclick="selectCommonMed('布地奈德雾化 1支')" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-600 hover:border-teal-500">布地奈德雾化</button>
+                    <button type="button" onclick="selectCommonMed('头孢克肟颗粒 50mg')" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-600 hover:border-teal-500">头孢克肟</button>
+                  </div>
+                  <div class="flex gap-1.5 pt-0.5">
+                    <input type="text" id="customMedInput" placeholder="或手动输入药品名及用量，如：西替利嗪 5滴" class="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500">
+                    <button type="button" onclick="confirmCustomMed()" class="px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-bold shrink-0">确认用药</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. 呼吸道症状：咳嗽表现 (快捷多选 + 自定义标签) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-lungs text-teal-600"></i> 咳嗽表现 (多选)
+                </span>
+                <button type="button" onclick="promptCustomTag('cough')" class="text-[10px] text-teal-600 font-bold hover:underline flex items-center gap-0.5">
+                  <i class="fa-solid fa-plus text-[9px]"></i> 自定义表现
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-1.5" id="coughTagContainer">
+                <button type="button" onclick="toggleTag(this, '偶尔轻咳')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">偶尔轻咳</button>
+                <button type="button" onclick="toggleTag(this, '频繁阵咳')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">频繁阵咳</button>
+                <button type="button" onclick="toggleTag(this, '夜间睡咳')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">夜间睡咳</button>
+                <button type="button" onclick="toggleTag(this, '剧烈呛咳')" class="tag-chip tag-chip-rose py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">剧烈呛咳</button>
+                <button type="button" onclick="toggleTag(this, '有痰/呼噜声')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">有痰/呼噜声</button>
+                <button type="button" onclick="toggleTag(this, '干咳无痰')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">干咳无痰</button>
+              </div>
+            </div>
+
+            <!-- 4. 呼吸道症状：鼻腔与喉咙 (快捷多选 + 自定义标签) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-head-side-cough text-teal-600"></i> 鼻腔与咽喉 (多选)
+                </span>
+                <button type="button" onclick="promptCustomTag('nose')" class="text-[10px] text-teal-600 font-bold hover:underline flex items-center gap-0.5">
+                  <i class="fa-solid fa-plus text-[9px]"></i> 自定义表现
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-1.5" id="noseTagContainer">
+                <button type="button" onclick="toggleTag(this, '打喷嚏')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">打喷嚏</button>
+                <button type="button" onclick="toggleTag(this, '流清鼻涕')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">流清鼻涕</button>
+                <button type="button" onclick="toggleTag(this, '黏稠黄涕')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">黏稠黄涕</button>
+                <button type="button" onclick="toggleTag(this, '鼻塞张嘴呼吸')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">鼻塞张嘴呼吸</button>
+                <button type="button" onclick="toggleTag(this, '声音嘶哑')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">声音嘶哑</button>
+              </div>
+            </div>
+
+            <!-- 5. 精神状态与食欲 (快捷多选 + 自定义表现) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-regular fa-face-smile text-amber-500"></i> 精神与食欲表现
+                </span>
+                <button type="button" onclick="promptCustomTag('mental')" class="text-[10px] text-teal-600 font-bold hover:underline flex items-center gap-0.5">
+                  <i class="fa-solid fa-plus text-[9px]"></i> 自定义表现
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-1.5" id="mentalTagContainer">
+                <button type="button" onclick="toggleTag(this, '精神活泼')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">精神活泼</button>
+                <button type="button" onclick="toggleTag(this, '稍显疲倦')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">稍显疲倦</button>
+                <button type="button" onclick="toggleTag(this, '烦躁哭闹')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">烦躁哭闹</button>
+                <button type="button" onclick="toggleTag(this, '嗜睡蔫弱 ⚠️')" class="tag-chip tag-chip-rose py-1.5 px-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-[11px]">嗜睡蔫弱 ⚠️</button>
+                <button type="button" onclick="toggleTag(this, '食欲尚可')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">食欲尚可</button>
+                <button type="button" onclick="toggleTag(this, '明显拒奶拒食')" class="tag-chip py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">明显拒奶拒食</button>
+                <button type="button" onclick="toggleTag(this, '呕吐 1 次')" class="tag-chip tag-chip-rose py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-[11px]">呕吐 1 次</button>
+              </div>
+            </div>
+
+            <!-- 简短补充备注 -->
+            <div>
+              <input type="text" id="customNoteInput" placeholder="补充其他细节（选填，如：洗了温水澡、手脚发凉、大量出汗）..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:border-teal-500">
+            </div>
+            </div>
+
+          </div>
+
+          <!-- 抽屉底部保存大按钮 -->
+          <div class="p-3.5 border-t border-slate-100 bg-white shrink-0 flex items-center gap-3">
+            <div class="text-[11px] text-slate-500">
+              已选 <span id="selectedCountBadge" class="font-extrabold text-teal-600 text-sm">0</span> 项表现
+            </div>
+            <button onclick="saveBatchRecord()" class="flex-1 py-3 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-check"></i>
+              <span>一键保存记录</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- 脚本驱动逻辑 -->
+<script>
+  // 模拟的 5 天感冒病程数据
+  const ILLNESS_DAYS = [
+    {
+      dateKey: "10-10",
+      dayTitle: "10月10日 (周五)",
+      dayTag: "病程 D1 · 发病首日",
+      dayStatus: "高烧发热期",
+      maxTemp: "39.2℃",
+      medCount: "2 次",
+      coreSymp: "突发高热/打喷嚏",
+      timeline: [
+        { time: "09:30", type: "temp", title: "晨起发现发热 38.8℃", desc: "体温骤升，四肢末端发凉，打喷嚏流清鼻涕", tags: ["流清鼻涕", "打喷嚏", "食欲减退"], med: "美林布洛芬 4ml" },
+        { time: "14:15", type: "temp", title: "午后测温 39.2℃ (峰值)", desc: "精神萎靡嗜睡，面色发红", tags: ["嗜睡蔫弱 ⚠️", "剧烈呛咳"], med: null },
+        { time: "18:30", type: "temp", title: "傍晚测温 38.6℃", desc: "洗温水澡物理降温，开始有偶发干咳", tags: ["偶尔轻咳", "烦躁哭闹"], med: "泰诺林 3.5ml" }
+      ]
+    },
+    {
+      dateKey: "10-11",
+      dayTitle: "10月11日 (周六)",
+      dayTag: "病程 D2 · 咳嗽加剧",
+      dayStatus: "中度发热",
+      maxTemp: "38.6℃",
+      medCount: "1 次",
+      coreSymp: "咳嗽阵发/清涕",
+      timeline: [
+        { time: "08:00", type: "temp", title: "晨起测温 38.1℃", desc: "夜间有 2 次睡咳醒来，清涕增多", tags: ["夜间睡咳", "流清鼻涕"], med: null },
+        { time: "13:40", type: "temp", title: "午后测温 38.6℃", desc: "咳嗽转为阵发性，声音稍有发嘶", tags: ["频繁阵咳", "声音嘶哑"], med: "美林布洛芬 4ml" },
+        { time: "19:00", type: "symp", title: "晚餐状态记录", desc: "体温降至 37.5℃，精神尚可，喝了 150ml 奶", tags: ["食欲尚可", "精神活泼"], med: null }
+      ]
+    },
+    {
+      dateKey: "10-12",
+      dayTitle: "10月12日 (今天)",
+      dayTag: "病程 D3 · 病情平稳",
+      dayStatus: "低热转恢复",
+      maxTemp: "38.2℃",
+      medCount: "0 次",
+      coreSymp: "偶咳/流清涕",
+      timeline: [
+        { time: "07:30", type: "temp", title: "晨起测温 37.6℃", desc: "体温基本平稳，精神状态明显好转", tags: ["偶尔轻咳", "流清鼻涕", "精神活泼"], med: null },
+        { time: "10:15", type: "symp", title: "上午活动状态", desc: "偶尔咳几声，带有少量痰鸣音，继续温水润喉", tags: ["有痰/呼噜声", "食欲尚可"], med: null }
+      ]
+    },
+    {
+      dateKey: "10-13",
+      dayTitle: "10月13日 (明日)",
+      dayTag: "病程 D4 · 预估观察",
+      dayStatus: "待观察",
+      maxTemp: "--",
+      medCount: "0 次",
+      coreSymp: "尚未开始",
+      timeline: []
+    }
+  ];
+
+  let currentDayIndex = 2; // 默认选中今天 (10/12)
+
+  // 渲染日历横向滑轨
+  function renderDateStrip() {
+    const strip = document.getElementById('dateCardsStrip');
+    strip.innerHTML = '';
+
+    ILLNESS_DAYS.forEach((item, idx) => {
+      const isActive = idx === currentDayIndex;
+      const isToday = idx === 2;
+
+      let tempColor = 'text-slate-500';
+      if (item.maxTemp.includes('39')) tempColor = 'text-rose-600 font-extrabold';
+      else if (item.maxTemp.includes('38')) tempColor = 'text-amber-600 font-extrabold';
+      else if (item.maxTemp.includes('37')) tempColor = 'text-emerald-600 font-extrabold';
+
+      const card = document.createElement('div');
+      card.className = `date-card cursor-pointer shrink-0 w-24 p-2.5 rounded-2xl border transition-all ${
+        isActive 
+          ? 'active bg-white border-teal-600 shadow-md ring-2 ring-teal-500/20' 
+          : 'bg-slate-50/80 border-slate-200 hover:bg-white'
+      }`;
+      card.onclick = () => selectDay(idx);
+
+      card.innerHTML = `
+        <div class="text-[10px] ${isActive ? 'text-teal-700 font-bold' : 'text-slate-400'}">${isToday ? '今天' : item.dateKey}</div>
+        <div class="text-xs font-bold text-slate-800 my-0.5">${item.dayTag.split('·')[0].trim()}</div>
+        <div class="text-xs ${tempColor}">${item.maxTemp}</div>
+        <div class="mt-1 flex items-center justify-center gap-1 text-[9px] text-slate-400">
+          <i class="fa-solid fa-pills text-[8px] ${item.medCount !== '0 次' && item.medCount !== '--' ? 'text-rose-500' : 'text-slate-300'}"></i>
+          <span>${item.medCount}</span>
+        </div>
+      `;
+      strip.appendChild(card);
+    });
+  }
+
+  // 选择具体某天
+  function selectDay(index) {
+    currentDayIndex = index;
+    renderDateStrip();
+    renderDayDetail();
+  }
+
+  // 渲染当日详情
+  function renderDayDetail() {
+    const day = ILLNESS_DAYS[currentDayIndex];
+    document.getElementById('bannerDayTag').textContent = day.dayTag.split('·')[0].trim();
+    document.getElementById('bannerDateTitle').textContent = day.dayTitle;
+    document.getElementById('bannerStatusPill').textContent = day.dayStatus;
+    document.getElementById('bannerMaxTemp').textContent = day.maxTemp;
+    document.getElementById('bannerMedCount').textContent = day.medCount;
+    document.getElementById('bannerCoreSymp').textContent = day.coreSymp;
+
+    const countText = document.getElementById('eventCountText');
+    const container = document.getElementById('timelineContainer');
+    const bottomBtnText = document.getElementById('bottomActionText');
+
+    if (currentDayIndex === 2) {
+      bottomBtnText.textContent = "记录今日症状表现";
+    } else {
+      bottomBtnText.textContent = `补录 ${day.dayTitle.split(' ')[0]} 记录`;
+    }
+
+    countText.textContent = `共 ${day.timeline.length} 条记录`;
+    container.innerHTML = '';
+
+    if (day.timeline.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-10 text-slate-400 space-y-2">
+          <i class="fa-regular fa-clipboard text-2xl text-slate-300"></i>
+          <p class="text-xs">该日暂无症状记录</p>
+          <button onclick="openDrawer(true)" class="text-teal-600 font-bold text-xs underline">立即补录一条</button>
+        </div>
+      `;
+      return;
+    }
+
+    day.timeline.forEach(event => {
+      const el = document.createElement('div');
+      el.className = "p-3 bg-white border border-slate-200/90 rounded-2xl shadow-sm space-y-2";
+
+      let medBadge = '';
+      if (event.med) {
+        medBadge = `
+          <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold">
+            <i class="fa-solid fa-pills text-[9px]"></i> 服用：${event.med}
+          </div>
+        `;
+      }
+
+      let tagsHtml = '';
+      if (event.tags && event.tags.length > 0) {
+        tagsHtml = '<div class="flex flex-wrap gap-1 pt-1">';
+        event.tags.forEach(t => {
+          const isDanger = t.includes('⚠️') || t.includes('呛咳');
+          tagsHtml += `<span class="px-2 py-0.5 rounded-md text-[10px] ${isDanger ? 'bg-rose-50 text-rose-600 border border-rose-200 font-bold' : 'bg-slate-100 text-slate-600'}">${t}</span>`;
+        });
+        tagsHtml += '</div>';
+      }
+
+      el.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">${event.time}</span>
+            <span class="text-xs font-bold text-slate-800">${event.title}</span>
+          </div>
+          ${medBadge}
+        </div>
+        <p class="text-[11px] text-slate-500 leading-relaxed">${event.desc}</p>
+        ${tagsHtml}
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  // ================= 抽屉交互与批量录入逻辑 (快捷 + 自定义) =================
+  let selectedTags = new Set();
+  let selectedMed = null;
+  let selectedTemp = null;
+  let currentRecordDate = 'today';
+  let currentRecordPeriod = 'now';
+  let exactTimeVal = null; // 精确自定义时间
+
+  function openDrawer(isForCurrentSelectedDay) {
+    const overlay = document.getElementById('drawerOverlay');
+    const content = document.getElementById('drawerContent');
+
+    // 如果当前查看的是历史日期，默认勾选对应补录日期
+    if (isForCurrentSelectedDay && currentDayIndex === 1) {
+      selectDateChip('yesterday');
+    } else if (isForCurrentSelectedDay && currentDayIndex === 0) {
+      selectDateChip('before');
+    } else {
+      selectDateChip('today');
+    }
+
+    // 初始化 datetime-local 默认值
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const defLocal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const dateInput = document.getElementById('exactDateTimeInput');
+    if (dateInput) dateInput.value = defLocal;
+
+    overlay.classList.remove('pointer-events-none');
+    overlay.classList.add('opacity-100');
+    content.classList.remove('translate-y-full');
+  }
+
+  function closeDrawer() {
+    const overlay = document.getElementById('drawerOverlay');
+    const content = document.getElementById('drawerContent');
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('pointer-events-none');
+    content.classList.add('translate-y-full');
+  }
+
+  // 日期胶囊切换
+  function selectDateChip(type) {
+    currentRecordDate = type;
+    exactTimeVal = null;
+    document.getElementById('customTimePickerPanel').classList.add('hidden');
+    document.getElementById('presetPeriodsBox').classList.remove('hidden');
+
+    ['today', 'yesterday', 'before'].forEach(t => {
+      const btn = document.getElementById(`dateChip_${t}`);
+      if (t === type) {
+        btn.className = "date-chip flex-1 py-1.5 text-center font-bold text-[11px] rounded-xl border border-teal-600 bg-teal-600 text-white transition-colors";
+      } else {
+        btn.className = "date-chip flex-1 py-1.5 text-center font-medium text-[11px] rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-colors";
+      }
+    });
+
+    const customBtn = document.getElementById('dateChip_custom');
+    if (customBtn) {
+      customBtn.className = "date-chip py-1.5 px-2.5 text-center font-medium text-[11px] rounded-xl border border-dashed border-teal-500 bg-white text-teal-700 hover:bg-teal-50 transition-colors flex items-center justify-center gap-1";
+    }
+
+    updateTimeDisplay();
+  }
+
+  // 展开/收起精确自定义时间选择器
+  function toggleCustomTimePanel() {
+    const panel = document.getElementById('customTimePickerPanel');
+    const isHidden = panel.classList.contains('hidden');
+    const customBtn = document.getElementById('dateChip_custom');
+
+    if (isHidden) {
+      panel.classList.remove('hidden');
+      ['today', 'yesterday', 'before'].forEach(t => {
+        const btn = document.getElementById(`dateChip_${t}`);
+        btn.className = "date-chip flex-1 py-1.5 text-center font-medium text-[11px] rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-colors";
+      });
+      customBtn.className = "date-chip py-1.5 px-2.5 text-center font-bold text-[11px] rounded-xl border border-teal-600 bg-teal-600 text-white transition-colors flex items-center justify-center gap-1";
+      
+      const inputVal = document.getElementById('exactDateTimeInput').value;
+      if (inputVal) onExactTimeChange(inputVal);
+    } else {
+      panel.classList.add('hidden');
+      selectDateChip(currentRecordDate);
+    }
+  }
+
+  // 精确时间变更处理
+  function onExactTimeChange(val) {
+    if (!val) return;
+    exactTimeVal = val; // e.g. "2026-10-12T14:35"
+    const [d, t] = val.split('T');
+    document.getElementById('selectedTimeDisplay').textContent = `${d} ${t}`;
+  }
+
+  // 时段切换
+  function selectTimePeriod(period) {
+    currentRecordPeriod = period;
+    exactTimeVal = null;
+    ['now', 'morning', 'afternoon', 'night'].forEach(p => {
+      const btn = document.getElementById(`period_${p}`);
+      if (p === period) {
+        btn.className = "period-chip py-1 text-center font-bold text-[10px] rounded-lg border border-teal-600 bg-teal-50 text-teal-700";
+      } else {
+        btn.className = "period-chip py-1 text-center text-[10px] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50";
+      }
+    });
+    updateTimeDisplay();
+  }
+
+  function updateTimeDisplay() {
+    if (exactTimeVal) {
+      const [d, t] = exactTimeVal.split('T');
+      document.getElementById('selectedTimeDisplay').textContent = `${d} ${t}`;
+      return;
+    }
+
+    let dateStr = "2026-10-12";
+    if (currentRecordDate === 'yesterday') dateStr = "2026-10-11";
+    if (currentRecordDate === 'before') dateStr = "2026-10-10";
+
+    let timeStr = "11:40";
+    if (currentRecordPeriod === 'morning') timeStr = "09:00";
+    if (currentRecordPeriod === 'afternoon') timeStr = "15:00";
+    if (currentRecordPeriod === 'night') timeStr = "21:00";
+
+    document.getElementById('selectedTimeDisplay').textContent = `${dateStr} ${timeStr}`;
+  }
+
+  // 快捷体温卡片选择
+  function selectTemp(val) {
+    const customInput = document.getElementById('customTempInput');
+    const btns = document.querySelectorAll('.temp-chip');
+    btns.forEach(b => {
+      if (b.textContent.includes(val)) {
+        if (selectedTemp === val) {
+          selectedTemp = null;
+          b.className = "temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]";
+          if (customInput) customInput.value = '';
+        } else {
+          selectedTemp = val;
+          b.className = "temp-chip flex-1 py-1.5 rounded-xl border border-rose-500 bg-rose-50 text-rose-600 font-bold text-[11px]";
+          if (customInput) customInput.value = val;
+        }
+      } else {
+        b.className = "temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]";
+      }
+    });
+    updateCount();
+  }
+
+  // 自定义体温手动输入
+  function onCustomTempInput(val) {
+    const trimmed = val ? String(val).trim() : '';
+    // 取消快捷卡片选中
+    document.querySelectorAll('.temp-chip').forEach(b => {
+      b.className = "temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]";
+    });
+
+    if (trimmed && !isNaN(trimmed)) {
+      selectedTemp = parseFloat(trimmed).toFixed(1);
+    } else {
+      selectedTemp = null;
+    }
+    updateCount();
+  }
+
+  // 给药切换 (美林 / 泰诺林)
+  function toggleMed(btn, name) {
+    if (selectedMed === name) {
+      selectedMed = null;
+      btn.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1";
+    } else {
+      document.querySelectorAll('.med-chip').forEach(b => {
+        b.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1";
+      });
+      selectedMed = name;
+      btn.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-teal-600 bg-teal-50 text-teal-800 text-[10px] font-bold flex items-center justify-center gap-1";
+    }
+    updateCount();
+  }
+
+  // 自定义药物面板展开/收起
+  function toggleCustomMedPanel() {
+    const p = document.getElementById('customMedPanel');
+    p.classList.toggle('hidden');
+  }
+
+  // 选择常见备药
+  function selectCommonMed(medName) {
+    selectedMed = medName;
+    document.querySelectorAll('.med-chip').forEach(b => {
+      b.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1";
+    });
+    toggleCustomMedPanel();
+    alert(`已选定用药：${medName}`);
+    updateCount();
+  }
+
+  // 确认手动输入的自定义药物
+  function confirmCustomMed() {
+    const input = document.getElementById('customMedInput');
+    const val = input.value.trim();
+    if (!val) {
+      alert("请输入药名及用量");
+      return;
+    }
+    selectedMed = val;
+    document.querySelectorAll('.med-chip').forEach(b => {
+      b.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1";
+    });
+    input.value = '';
+    toggleCustomMedPanel();
+    alert(`已记录用药：${val}`);
+    updateCount();
+  }
+
+  // 症状标签多选
+  function toggleTag(btn, tagName) {
+    if (selectedTags.has(tagName)) {
+      selectedTags.delete(tagName);
+      btn.classList.remove('active');
+    } else {
+      selectedTags.add(tagName);
+      btn.classList.add('active');
+    }
+    updateCount();
+  }
+
+  // 动态添加自定义症状表现标签
+  function promptCustomTag(category) {
+    let catName = "表现";
+    let targetContainer = "coughTagContainer";
+    if (category === "cough") { catName = "咳嗽表现"; targetContainer = "coughTagContainer"; }
+    if (category === "nose") { catName = "鼻腔喉咙表现"; targetContainer = "noseTagContainer"; }
+    if (category === "mental") { catName = "精神与食欲表现"; targetContainer = "mentalTagContainer"; }
+
+    const input = window.prompt(`请输入自定义${catName}（如：犬吠样咳嗽、嘴唇干裂）：`);
+    if (!input || !input.trim()) return;
+
+    const tagName = input.trim();
+    const container = document.getElementById(targetContainer);
+    
+    // 创建新标签并直接高亮选中
+    const newBtn = document.createElement('button');
+    newBtn.type = "button";
+    newBtn.className = "tag-chip py-1.5 px-2.5 rounded-xl border border-teal-600 bg-teal-600 text-white text-[11px] active shadow-sm";
+    newBtn.textContent = tagName;
+    newBtn.onclick = function() {
+      toggleTag(this, tagName);
+    };
+
+    container.appendChild(newBtn);
+    selectedTags.add(tagName);
+    updateCount();
+  }
+
+  function updateCount() {
+    let count = selectedTags.size;
+    if (selectedTemp) count++;
+    if (selectedMed) count++;
+    document.getElementById('selectedCountBadge').textContent = count;
+  }
+
+  // 保存记录落库并刷新
+  function saveBatchRecord() {
+    if (selectedTags.size === 0 && !selectedTemp && !selectedMed) {
+      alert("请至少勾选或输入一项体温、用药或症状标签");
+      return;
+    }
+
+    let targetIdx = 2; // 默认今天 (10/12)
+    let timeStr = "11:45";
+
+    if (exactTimeVal) {
+      const [datePart, timePart] = exactTimeVal.split('T');
+      timeStr = timePart;
+      if (datePart.endsWith('10-10')) targetIdx = 0;
+      else if (datePart.endsWith('10-11')) targetIdx = 1;
+      else if (datePart.endsWith('10-12')) targetIdx = 2;
+      else if (datePart.endsWith('10-13')) targetIdx = 3;
+    } else {
+      if (currentRecordDate === 'yesterday') targetIdx = 1;
+      if (currentRecordDate === 'before') targetIdx = 0;
+
+      if (currentRecordPeriod === 'morning') timeStr = "09:00";
+      if (currentRecordPeriod === 'afternoon') timeStr = "15:00";
+      if (currentRecordPeriod === 'night') timeStr = "21:00";
+    }
+
+    const note = document.getElementById('customNoteInput').value.trim();
+    const tagList = Array.from(selectedTags);
+
+    let title = "批量症状记录";
+    if (selectedTemp) {
+      title = `测温 ${selectedTemp}℃ · ${tagList.slice(0, 2).join('/') || '体温变化'}`;
+    } else if (tagList.length > 0) {
+      title = `症状表现：${tagList.slice(0, 2).join('、')}`;
+    }
+
+    const newRecord = {
+      time: timeStr,
+      type: selectedTemp ? "temp" : "symp",
+      title: title,
+      desc: note || `记录了 ${tagList.length} 项表现${selectedTemp ? `，体温为 ${selectedTemp}℃` : ''}`,
+      tags: tagList,
+      med: selectedMed
+    };
+
+    // 插入到对应日期的流水流中
+    ILLNESS_DAYS[targetIdx].timeline.unshift(newRecord);
+    
+    // 如果有服药，更新服药计数
+    if (selectedMed) {
+      let cur = parseInt(ILLNESS_DAYS[targetIdx].medCount) || 0;
+      ILLNESS_DAYS[targetIdx].medCount = `${cur + 1} 次`;
+    }
+
+    // 更新该日最高温显示
+    if (selectedTemp) {
+      const curMax = parseFloat(ILLNESS_DAYS[targetIdx].maxTemp) || 0;
+      const newT = parseFloat(selectedTemp);
+      if (newT > curMax) {
+        ILLNESS_DAYS[targetIdx].maxTemp = `${newT.toFixed(1)}℃`;
+      }
+    }
+
+    // 重置抽屉状态
+    selectedTags.clear();
+    selectedTemp = null;
+    selectedMed = null;
+    exactTimeVal = null;
+    document.getElementById('customNoteInput').value = '';
+    const customTempInput = document.getElementById('customTempInput');
+    if (customTempInput) customTempInput.value = '';
+
+    document.querySelectorAll('.tag-chip').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.temp-chip').forEach(b => b.className = "temp-chip flex-1 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:border-teal-500 text-[11px]");
+    document.querySelectorAll('.med-chip').forEach(b => b.className = "med-chip flex-1 py-1.5 px-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[10px] font-medium flex items-center justify-center gap-1");
+    updateCount();
+
+    closeDrawer();
+
+    // 自动切到录入的这天查看结果
+    selectDay(targetIdx);
+  }
+
+  function openDoctorReportModal() {
+    window.location.href = "page_4_doctor_summary.html";
+  }
+
+  // 初始化
+  window.addEventListener('DOMContentLoaded', () => {
+    renderDateStrip();
+    renderDayDetail();
+    updateTimeDisplay();
+  });
+</script>
+
+</body>
+</html>

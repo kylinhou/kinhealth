@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>安康记 (AnkangCare) - 交互原型工作台 & 产品规格说明</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0B1120;
+      --bg-card: #1E293B;
+      --bg-panel: #0F172A;
+      --teal-primary: #0D9488;
+      --teal-accent: #2DD4BF;
+      --border-dark: #334155;
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      background: var(--bg-dark);
+      color: #E2E8F0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* 手机外壳样式 */
+    .iphone-case {
+      width: 400px;
+      height: 820px;
+      background: #090D16;
+      border-radius: 54px;
+      box-shadow: 
+        0 0 0 4px #26334D,
+        0 0 0 6px #151D2F,
+        0 25px 60px -15px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(13, 148, 136, 0.15);
+      position: relative;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease;
+      flex-shrink: 0;
+    }
+
+    .iphone-screen {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border-radius: 44px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 灵动岛 */
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 116px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      pointer-events: none;
+      box-shadow: 0 0 2px rgba(255,255,255,0.15);
+    }
+    .island-camera {
+      width: 10px;
+      height: 10px;
+      background: #091322;
+      border-radius: 50%;
+      border: 1.5px solid #1E293B;
+    }
+    .island-sensor {
+      width: 8px;
+      height: 8px;
+      background: #060911;
+      border-radius: 50%;
+    }
+
+    /* 状态栏 */
+    .phone-status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0F172A;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    /* 手机 Home 条 */
+    .iphone-home-bar {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 4.5px;
+      background: #94A3B8;
+      border-radius: 10px;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* iframe 无缝充满 */
+    .phone-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #FFF;
+      border-radius: 44px;
+    }
+
+    .spec-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    /* 侧边栏菜单选中状态 */
+    .nav-item.active {
+      background: rgba(13, 148, 136, 0.15);
+      border-color: #2DD4BF;
+      color: #FFFFFF;
+    }
+    .nav-item.active .nav-icon-bg {
+      background: #0D9488;
+      color: #FFFFFF;
+    }
+    .nav-item.active .nav-badge {
+      background: rgba(45, 212, 191, 0.25);
+      color: #2DD4BF;
+    }
+
+    /* 移动端视图切换 Tab */
+    @media (max-width: 1024px) {
+      .desktop-three-col {
+        display: none !important;
+      }
+      .mobile-view-wrapper {
+        display: flex !important;
+      }
+    }
+    @media (min-width: 1025px) {
+      .mobile-view-wrapper {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0B1120] text-slate-200">
+
+  <!-- 顶部导航栏 (Global App Header) -->
+  <header class="h-16 border-b border-slate-800 bg-[#0F172A]/90 backdrop-blur sticky top-0 z-30 px-4 md:px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button id="mobileMenuToggle" class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+          <i class="fa-solid fa-notes-medical text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-base md:text-lg text-white tracking-tight">安康记 · 原型工作台</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 hidden sm:inline-block">v1.0 Pro</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">多生命周期家庭健康协同系统 · 全交互演练与 PRD 规格</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 顶部右侧操作栏 -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- 移动端视图切换 Tabs (仅在移动屏幕显示) -->
+      <div class="flex lg:hidden bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs">
+        <button id="tabBtnPhone" class="px-3 py-1.5 rounded-lg bg-teal-600 text-white font-medium flex items-center gap-1.5 transition-all">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>手机交互</span>
+        </button>
+        <button id="tabBtnSpec" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 font-medium flex items-center gap-1.5 transition-all">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>功能说明</span>
+        </button>
+      </div>
+
+      <!-- 手机远程扫码按钮 -->
+      <button onclick="openQrModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors">
+        <i class="fa-solid fa-qrcode text-teal-400"></i>
+        <span class="hidden sm:inline">手机扫码</span>
+      </button>
+
+      <!-- 独立新标签打开当前页面 -->
+      <a id="btnOpenNewTab" href="page_1_home_dashboard.html" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors" title="新标签独立打开">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <span class="hidden sm:inline">新标签查看</span>
+      </a>
+
+      <!-- 刷新手机交互 -->
+      <button onclick="reloadPreview()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-xs transition-colors" title="刷新交互状态">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       1. 桌面端三栏工作台布局 (>= 1024px)
+       ========================================================================= -->
+  <main class="desktop-three-col flex-1 flex overflow-hidden h-[calc(100vh-64px)]">
+
+    <!-- 【左侧栏】：功能模块导航栏 (宽度 280px) -->
+    <aside class="w-[280px] bg-[#0F172A] border-r border-slate-800 flex flex-col justify-between overflow-y-auto shrink-0 select-none">
+      <div class="p-4 space-y-4">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">功能模块导航</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">6 核心页</span>
+        </div>
+
+        <nav class="space-y-1.5" id="desktopNavList">
+          <!-- 动态填充或写死的导航项 -->
+        </nav>
+      </div>
+
+      <!-- 左侧栏底部状态 -->
+      <div class="p-4 border-t border-slate-800 bg-[#0B1120]/50 space-y-3">
+        <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 text-xs text-slate-300 space-y-1.5">
+          <div class="flex items-center justify-between text-teal-400 font-medium">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-cloud-check"></i> Vercel 实时托管</span>
+            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            手机/远程设备可直接打开同名域名实时测试最新交互。
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 【右侧第一栏 (居中)】：手机视图预览与交互 (宽度约 480px) -->
+    <section class="w-[490px] bg-[#0B1120] border-r border-slate-800 flex flex-col items-center justify-between p-4 overflow-y-auto shrink-0 relative">
+      <!-- 手机上方微型工具条 -->
+      <div class="w-full max-w-[400px] flex items-center justify-between mb-3 text-xs text-slate-400 px-2">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="currentModuleNameText" class="font-medium text-slate-200">01 首页场景感知大盘</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700/60">
+          <button onclick="setPhoneScale(0.85)" class="px-1.5 py-0.5 rounded hover:bg-slate-700 text-[11px]">85%</button>
+          <button onclick="setPhoneScale(0.92)" class="px-1.5 py-0.5 rounded hover:bg-slate-700 text-[11px] text-teal-400 font-bold">92%</button>
+          <button onclick="setPhoneScale(1)" class="px-1.5 py-0.5 rounded hover:bg-slate-700 text-[11px]">100%</button>
+        </div>
+      </div>
+
+      <!-- iPhone 15 Pro 仿真外壳容器 -->
+      <div id="iphoneCaseContainer" class="iphone-case" style="transform: scale(0.92); transform-origin: top center;">
+        <!-- 灵动岛 -->
+        <div class="dynamic-island">
+          <div class="island-camera"></div>
+          <div class="island-sensor"></div>
+        </div>
+
+        <!-- 屏幕内部 iframe -->
+        <div class="iphone-screen">
+          <iframe id="phoneIframeDesktop" class="phone-iframe" src="page_7_illness_timeline_logger.html?view=phone"></iframe>
+          <div class="iphone-home-bar"></div>
+        </div>
+      </div>
+
+      <!-- 手机下方交互提示 -->
+      <div class="mt-2 text-center text-[11px] text-slate-500 flex items-center gap-1">
+        <i class="fa-regular fa-hand-pointer text-teal-500"></i>
+        <span>手机屏幕支持直接点击、滑动与交互测试</span>
+      </div>
+    </section>
+
+    <!-- 【右侧第二栏】：对应页面的相关功能说明与 PRD 规格 (自适应撑满剩余宽度) -->
+    <section class="flex-1 bg-[#131B2E] flex flex-col overflow-hidden">
+      <!-- 规格栏 Header -->
+      <div class="h-12 border-b border-slate-800 bg-[#1E293B] px-6 flex items-center justify-between text-xs shrink-0">
+        <div class="flex items-center gap-2 text-slate-300">
+          <i class="fa-solid fa-book-open text-teal-400"></i>
+          <span class="font-bold text-sm text-white">产品功能规格 & PRD 业务规则</span>
+          <span id="specPageBadge" class="px-2 py-0.5 rounded-full bg-slate-800 text-teal-300 font-mono text-[11px] border border-slate-700">PAGE 07</span>
+        </div>
+        <div class="flex items-center gap-2 text-slate-400">
+          <span class="text-[11px]">与左侧原型双向对齐</span>
+        </div>
+      </div>
+
+      <!-- 规格栏主体：加载对应页面的 spec 视图 -->
+      <div class="flex-1 overflow-y-auto p-4 md:p-6" id="specContainerDesktop">
+        <iframe id="specIframeDesktop" class="spec-iframe" src="page_7_illness_timeline_logger.html?view=spec"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       2. 移动端/平板单屏自适应布局 (< 1024px)
+       ========================================================================= -->
+  <main class="mobile-view-wrapper flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+    <!-- 移动端手机交互视图 -->
+    <div id="mobilePhonePanel" class="flex-1 w-full h-full flex flex-col items-center justify-center p-2 bg-[#090D16]">
+      <div class="w-full h-full max-w-[430px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 relative bg-white">
+        <iframe id="phoneIframeMobile" class="w-full h-full border-none" src="page_1_home_dashboard.html?view=phone"></iframe>
+      </div>
+    </div>
+
+    <!-- 移动端功能说明视图 (默认隐藏) -->
+    <div id="mobileSpecPanel" class="hidden flex-1 w-full h-full overflow-y-auto p-4 bg-[#131B2E]">
+      <iframe id="specIframeMobile" class="w-full h-full border-none" src="page_1_home_dashboard.html?view=spec"></iframe>
+    </div>
+  </main>
+
+  <!-- 移动端抽屉导航遮罩与菜单 (Mobile Drawer) -->
+  <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+  <aside id="mobileDrawer" class="fixed top-0 bottom-0 left-0 w-[290px] bg-[#0F172A] border-r border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center text-white text-xs">
+          <i class="fa-solid fa-notes-medical"></i>
+        </div>
+        <span class="font-bold text-white text-sm">安康记功能模块</span>
+      </div>
+      <button id="closeMobileDrawer" class="text-slate-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="p-4 flex-1 overflow-y-auto space-y-1.5" id="mobileNavList">
+      <!-- 动态填充 -->
+    </div>
+  </aside>
+
+  <!-- 手机扫码查看 Modal -->
+  <div id="qrModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#1E293B] border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+      <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1">手机远程直接预览</h3>
+      <p class="text-xs text-slate-400 mb-4">使用微信或手机浏览器扫描二维码，立刻在真机上体验全功能原型！</p>
+      
+      <div class="bg-white p-4 rounded-xl inline-block shadow-inner mb-4" id="qrcodeBox"></div>
+      
+      <div class="text-[11px] text-slate-400 font-mono bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 break-all select-all text-left mb-4" id="currentFullUrl">
+        https://ankangji-preview.vercel.app
+      </div>
+
+      <button onclick="copyCurrentUrl()" class="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md">
+        <i class="fa-regular fa-copy"></i>
+        <span id="copyBtnText">复制在线预览链接</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. 页面模块配置与交互切换脚本
+       ========================================================================= -->
+  <script>
+    // 核心模块配置与原型清单
+    const MODULES = [
+      {
+        id: "p7",
+        badge: "PAGE 07",
+        title: "感冒病程日历与批量录入",
+        sub: "病程日历滑轨 · 快捷时间补录 · 症状标签矩阵",
+        icon: "fa-calendar-week",
+        file: "page_7_illness_timeline_logger.html",
+        tag: "最新方案 ✨"
+      },
+      {
+        id: "p1",
+        badge: "PAGE 01",
+        title: "首页场景感知大盘",
+        sub: "多成员动态滑轨 · 今日高频卡 · 协同流水",
+        icon: "fa-house",
+        file: "page_1_home_dashboard.html",
+        tag: "核心大盘"
+      },
+      {
+        id: "p2",
+        badge: "PAGE 02",
+        title: "儿童发热与用药监护",
+        sub: "72h体温曲线 · 退热药倒计时罗盘 · 防超量防呆",
+        icon: "fa-temperature-arrow-up",
+        file: "page_2_fever_med_tracker.html",
+        tag: "核心爆款 🔥"
+      },
+      {
+        id: "p3",
+        badge: "PAGE 03",
+        title: "极速单手录入",
+        sub: "布里斯托7级便便 · 奶量胶囊 · 亲喂秒表",
+        icon: "fa-bolt-lightning",
+        file: "page_3_speed_input.html",
+        tag: "极速体验"
+      },
+      {
+        id: "p4",
+        badge: "PAGE 04",
+        title: "就诊问诊长图生成",
+        sub: "结构化病情摘要 · 72h用药体温长图 · 微信问诊导出",
+        icon: "fa-file-waveform",
+        file: "page_4_doctor_summary.html",
+        tag: "医疗协同"
+      },
+      {
+        id: "p5",
+        badge: "PAGE 05",
+        title: "长辈痛风与慢病关怀",
+        sub: "大字关怀模式 · 尿酸血压双轨 · 嘌呤红绿避坑库",
+        icon: "fa-heart-pulse",
+        file: "page_5_elder_uric_care.html",
+        tag: "银发关怀"
+      },
+      {
+        id: "p6",
+        badge: "PAGE 06",
+        title: "家庭成员档案设置",
+        sub: "6大生命周期画像 · 看护权限分配 · 数据隐私",
+        icon: "fa-users-gear",
+        file: "page_6_member_settings.html",
+        tag: "档案管理"
+      },
+      {
+        id: "suite",
+        badge: "ALL-IN-ONE",
+        title: "全流程串联体验套件",
+        sub: "全功能无缝切换 · 页面间跳转串联",
+        icon: "fa-layer-group",
+        file: "ankangji_app_suite.html",
+        tag: "综合体验"
+      }
+    ];
+
+    let currentModuleIndex = 0;
+
+    // 初始化渲染侧边栏
+    function renderNav() {
+      const desktopNav = document.getElementById('desktopNavList');
+      const mobileNav = document.getElementById('mobileNavList');
+      
+      let desktopHtml = '';
+      let mobileHtml = '';
+
+      MODULES.forEach((mod, idx) => {
+        const isActive = idx === currentModuleIndex;
+        const itemHtml = `
+          <div onclick="switchModule(${idx})" class="nav-item group cursor-pointer p-3 rounded-xl border transition-all ${
+            isActive 
+              ? 'active border-teal-500 bg-teal-500/15' 
+              : 'border-slate-800 hover:border-slate-700 bg-slate-800/40 hover:bg-slate-800/70'
+          }">
+            <div class="flex items-start gap-3">
+              <div class="nav-icon-bg w-8 h-8 rounded-lg ${isActive ? 'bg-teal-600 text-white' : 'bg-slate-700/60 text-slate-300 group-hover:text-teal-400'} flex items-center justify-center shrink-0 text-sm transition-colors">
+                <i class="fa-solid ${mod.icon}"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-1 mb-0.5">
+                  <span class="text-xs font-bold text-white truncate">${mod.title}</span>
+                  <span class="nav-badge text-[10px] font-semibold px-1.5 py-0.2 rounded ${isActive ? 'bg-teal-500/30 text-teal-300' : 'bg-slate-700 text-slate-400'} shrink-0">${mod.badge}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 truncate leading-relaxed">${mod.sub}</p>
+              </div>
+            </div>
+          </div>
+        `;
+        desktopHtml += itemHtml;
+        mobileHtml += itemHtml;
+      });
+
+      desktopNav.innerHTML = desktopHtml;
+      mobileNav.innerHTML = mobileHtml;
+    }
+
+    // 切换当前激活模块
+    function switchModule(index) {
+      currentModuleIndex = index;
+      const mod = MODULES[index];
+
+      // 更新顶部与各处文字
+      document.getElementById('currentModuleNameText').textContent = `${mod.badge} ${mod.title}`;
+      document.getElementById('specPageBadge').textContent = mod.badge;
+      document.getElementById('btnOpenNewTab').href = mod.file;
+
+      // 更新 iframe 源
+      const phoneUrl = `${mod.file}?view=phone&t=${Date.now()}`;
+      const specUrl = `${mod.file}?view=spec&t=${Date.now()}`;
+
+      // 桌面端 iframe
+      const pIframeDesk = document.getElementById('phoneIframeDesktop');
+      const sIframeDesk = document.getElementById('specIframeDesktop');
+      if (pIframeDesk) pIframeDesk.src = phoneUrl;
+      if (sIframeDesk) sIframeDesk.src = specUrl;
+
+      // 移动端 iframe
+      const pIframeMob = document.getElementById('phoneIframeMobile');
+      const sIframeMob = document.getElementById('specIframeMobile');
+      if (pIframeMob) pIframeMob.src = phoneUrl;
+      if (sIframeMob) sIframeMob.src = specUrl;
+
+      // 重新高亮导航
+      renderNav();
+
+      // 关闭移动端抽屉
+      closeDrawer();
+    }
+
+    // 重新加载当前页面
+    function reloadPreview() {
+      switchModule(currentModuleIndex);
+    }
+
+    // 缩放 iPhone 外壳
+    function setPhoneScale(scale) {
+      const container = document.getElementById('iphoneCaseContainer');
+      if (container) {
+        container.style.transform = `scale(${scale})`;
+      }
+    }
+
+    // 移动端切换 手机交互 / 功能说明
+    const tabBtnPhone = document.getElementById('tabBtnPhone');
+    const tabBtnSpec = document.getElementById('tabBtnSpec');
+    const mobilePhonePanel = document.getElementById('mobilePhonePanel');
+    const mobileSpecPanel = document.getElementById('mobileSpecPanel');
+
+    if (tabBtnPhone && tabBtnSpec) {
+      tabBtnPhone.addEventListener('click', () => {
+        tabBtnPhone.className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white font-medium flex items-center gap-1.5 transition-all";
+        tabBtnSpec.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 font-medium flex items-center gap-1.5 transition-all";
+        mobilePhonePanel.classList.remove('hidden');
+        mobileSpecPanel.classList.add('hidden');
+      });
+
+      tabBtnSpec.addEventListener('click', () => {
+        tabBtnSpec.className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white font-medium flex items-center gap-1.5 transition-all";
+        tabBtnPhone.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 font-medium flex items-center gap-1.5 transition-all";
+        mobileSpecPanel.classList.remove('hidden');
+        mobilePhonePanel.classList.add('hidden');
+      });
+    }
+
+    // 移动端抽屉导航
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
+    const closeMobileDrawer = document.getElementById('closeMobileDrawer');
+
+    function openDrawer() {
+      mobileDrawer.classList.remove('-translate-x-full');
+      mobileDrawerBackdrop.classList.remove('hidden');
+    }
+    function closeDrawer() {
+      mobileDrawer.classList.add('-translate-x-full');
+      mobileDrawerBackdrop.classList.add('hidden');
+    }
+
+    if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', openDrawer);
+    if (closeMobileDrawer) closeMobileDrawer.addEventListener('click', closeDrawer);
+    if (mobileDrawerBackdrop) mobileDrawerBackdrop.addEventListener('click', closeDrawer);
+
+    // 手机二维码弹窗
+    let qrInstance = null;
+    function openQrModal() {
+      const modal = document.getElementById('qrModal');
+      const box = document.getElementById('qrcodeBox');
+      const urlText = document.getElementById('currentFullUrl');
+      
+      const currentUrl = window.location.href.split('#')[0].split('?')[0];
+      urlText.textContent = currentUrl;
+      box.innerHTML = '';
+
+      qrInstance = new QRCode(box, {
+        text: currentUrl,
+        width: 170,
+        height: 170,
+        colorDark: "#0F172A",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    function copyCurrentUrl() {
+      const url = document.getElementById('currentFullUrl').textContent.trim();
+      navigator.clipboard.writeText(url).then(() => {
+        const btnText = document.getElementById('copyBtnText');
+        btnText.textContent = "复制成功！";
+        setTimeout(() => {
+          btnText.textContent = "复制在线预览链接";
+        }, 2000);
+      });
+    }
+
+    // 页面启动初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      renderNav();
+      // 根据 URL 中的 page 参数预先定位
+      const params = new URLSearchParams(window.location.search);
+      const targetPage = params.get('page');
+      if (targetPage) {
+        const foundIdx = MODULES.findIndex(m => m.id === targetPage);
+        if (foundIdx !== -1) {
+          switchModule(foundIdx);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

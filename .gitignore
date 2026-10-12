@@ -16,3 +16,6 @@ scratch/
 node_modules/
 build-artifacts/
 *.apk
+.vercel/
+demos/.vercel/
+.env*

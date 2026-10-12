@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安康记 (FamilyCare) - 家庭健康追踪 Android App Demo</title>
+  <style>
+    :root {
+      --primary: #2A6F97;
+      --primary-light: #EBF4F6;
+      --primary-dark: #013A63;
+      --accent-coral: #E63946;
+      --accent-coral-light: #FDE8E9;
+      --accent-amber: #F4A261;
+      --accent-amber-light: #FEF3EB;
+      --accent-green: #2A9D8F;
+      --accent-green-light: #E8F5F3;
+      --accent-purple: #7209B7;
+      --accent-purple-light: #F3E8FC;
+      --bg: #F4F6F9;
+      --card-bg: #FFFFFF;
+      --text-main: #1D2D44;
+      --text-sub: #6C7A89;
+      --border: #E2E8F0;
+      --shadow-sm: 0 2px 6px rgba(0,0,0,0.04);
+      --shadow-md: 0 6px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0F172A;
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Outer Wrapper with split layout */
+    .app-workspace {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      max-width: 1320px;
+      width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    /* Left Control Panel / Walkthrough */
+    .demo-guide {
+      flex: 1;
+      max-width: 460px;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .demo-guide h1 {
+      font-size: 22px;
+      color: #38BDF8;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-brand-subtitle {
+      font-size: 13px;
+      color: #38BDF8;
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+
+    .demo-guide p.lead {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .scenario-card {
+      background: #0F172A;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .scenario-card:hover, .scenario-card.active {
+      border-color: #38BDF8;
+      background: #1E293B;
+      transform: translateY(-2px);
+    }
+
+    .scenario-card h3 {
+      font-size: 14px;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .scenario-card h3 .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge-fever { background: #7F1D1D; color: #FCA5A5; }
+    .badge-elder { background: #3730A3; color: #C7D2FE; }
+    .badge-quick { background: #064E3B; color: #6EE7B7; }
+    .badge-config { background: #854D0E; color: #FDE047; }
+
+    .scenario-card p {
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    .interaction-tips {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed #334155;
+      font-size: 12px;
+      color: #64748B;
+      line-height: 1.6;
+    }
+
+    .interaction-tips strong {
+      color: #38BDF8;
+    }
+
+    /* Android Phone Frame */
+    .mobile-frame-container {
+      width: 410px;
+      height: 840px;
+      background: #000;
+      border-radius: 46px;
+      padding: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 3px #334155;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      border-radius: 36px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: var(--text-main);
+    }
+
+    /* Android Status Bar */
+    .android-status-bar {
+      height: 38px;
+      padding: 6px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      background: transparent;
+      z-index: 10;
+    }
+
+    .status-notch {
+      width: 10px;
+      height: 10px;
+      background: #111;
+      border-radius: 50%;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Phone Content Scrollable Area */
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 16px 80px;
+      scrollbar-width: none;
+    }
+    .phone-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* App Header & Family Switcher */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .app-title-group h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .app-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settings-btn-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-sub);
+      transition: all 0.2s;
+    }
+
+    .settings-btn-icon:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .sync-status {
+      font-size: 10px;
+      color: var(--accent-green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+
+    .sync-status::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: var(--accent-green);
+      border-radius: 50%;
+    }
+
+    /* Family Members Carousel */
+    .family-carousel {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .family-carousel::-webkit-scrollbar { display: none; }
+
+    .member-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 30px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .member-tab.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .member-tab .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: #E2E8F0;
+    }
+
+    .member-tab.active .avatar {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .member-tab .info {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .member-tab .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .member-tab .tag {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .member-tab.fever-alert {
+      border-color: var(--accent-coral);
+      background: var(--accent-coral-light);
+    }
+
+    .member-tab.fever-alert .tag {
+      color: var(--accent-coral);
+      font-weight: 700;
+    }
+
+    /* Dynamic Alert Banner */
+    .alert-banner {
+      background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+      border: 1px solid #FECDD3;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      position: relative;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .alert-banner.elder-alert {
+      background: linear-gradient(135deg, #FEF3EB 0%, #FDE8D7 100%);
+      border-color: #FDBA74;
+    }
+
+    .alert-banner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .alert-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-coral);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .elder-alert .alert-title {
+      color: #C2410C;
+    }
+
+    .alert-desc {
+      font-size: 12px;
+      color: #881337;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .elder-alert .alert-desc {
+      color: #7C2D12;
+    }
+
+    .alert-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-coral);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .elder-alert .alert-action-btn {
+      color: #C2410C;
+    }
+
+    /* Metric Grid Cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .metric-name {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .metric-icon {
+      font-size: 16px;
+    }
+
+    .metric-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+
+    .metric-val small {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-sub);
+    }
+
+    .metric-status {
+      font-size: 11px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-tag {
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .status-good { background: var(--accent-green-light); color: var(--accent-green); }
+    .status-warn { background: var(--accent-amber-light); color: var(--accent-amber); }
+    .status-danger { background: var(--accent-coral-light); color: var(--accent-coral); }
+
+    /* Special Fever Card with Interactive Canvas */
+    .fever-tracker-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-title a {
+      font-size: 12px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 135px;
+      background: #FAFBFD;
+      border-radius: var(--radius-sm);
+      border: 1px solid #EDF2F7;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    canvas#feverChart, canvas#uricChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .medication-timeline-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFF8E7;
+      border: 1px solid #FEEBC8;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11px;
+      color: #9C4221;
+    }
+
+    .med-pill {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Activity Timeline List */
+    .timeline-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      position: relative;
+      padding-bottom: 14px;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-item:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 26px;
+      bottom: 0;
+      width: 2px;
+      background: #EDF2F7;
+    }
+
+    .timeline-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .icon-milk { background: #E0F2FE; color: #0369A1; }
+    .icon-poop { background: #FEF3C7; color: #92400E; }
+    .icon-med { background: #FCE7F3; color: #9D174D; }
+    .icon-temp { background: #FFE4E6; color: #BE123C; }
+    .icon-uric { background: #EDE9FE; color: #6D28D9; }
+
+    .timeline-details {
+      flex: 1;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .timeline-time {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+
+    .timeline-sub {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+
+    .timeline-author {
+      font-size: 10px;
+      color: #94A3B8;
+      margin-top: 3px;
+    }
+
+    /* Floating Action Button (FAB) */
+    .fab-btn {
+      position: absolute;
+      right: 20px;
+      bottom: 74px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 20px rgba(42, 111, 151, 0.45);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 20;
+    }
+
+    .fab-btn:hover {
+      transform: scale(1.06);
+    }
+
+    /* Bottom Navigation Bar */
+    .android-nav-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 6px;
+      z-index: 15;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item-icon {
+      font-size: 18px;
+    }
+
+    /* Modal / Bottom Sheet for Quick Add */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+      border-radius: 36px;
+      overflow: hidden;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .bottom-sheet {
+      width: 100%;
+      background: #FFFFFF;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 18px 16px 24px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(100%);
+      animation: slideUp 0.25s forwards cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 88%;
+      overflow-y: auto;
+    }
+
+    @keyframes slideUp {
+      to { transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: #CBD5E1;
+      border-radius: 2px;
+      margin: 0 auto 12px;
+    }
+
+    .sheet-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sheet-title-badge {
+      font-size: 11px;
+      font-weight: normal;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .close-btn {
+      font-size: 18px;
+      color: var(--text-sub);
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    /* 6 Configured Quick Slots Grid */
+    .quick-category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 6px;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-btn:hover, .cat-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .cat-btn span.emoji {
+      font-size: 18px;
+    }
+    .cat-btn span.label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Expand More / Other metrics button */
+    .more-metrics-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+      background: #F1F5F9;
+      border-radius: var(--radius-sm);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 14px;
+      border: 1px dashed #CBD5E1;
+      transition: all 0.2s;
+    }
+
+    .more-metrics-trigger:hover {
+      background: #E2E8F0;
+    }
+
+    .more-metrics-panel {
+      display: none;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      margin-bottom: 14px;
+      animation: fadeIn 0.2s;
+    }
+
+    .more-metrics-panel.open {
+      display: block;
+    }
+
+    .more-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .more-item-btn {
+      padding: 6px 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+    .more-item-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .input-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 5px 10px;
+      border-radius: 14px;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.15s;
+    }
+
+    .chip.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-container input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+
+    .slider-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(42, 111, 151, 0.3);
+      margin-top: 6px;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Doctor Summary Card Overlay */
+    .doctor-summary-modal {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 60;
+      border-radius: 36px;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .doctor-card {
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 16px;
+      color: #1E293B;
+      border: 1px solid #CBD5E1;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .doc-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #0284C7;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .doc-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .doc-sub {
+      font-size: 11px;
+      color: #64748B;
+      margin-bottom: 10px;
+      border-bottom: 1px dashed #E2E8F0;
+      padding-bottom: 6px;
+    }
+
+    .doc-section {
+      margin-bottom: 10px;
+    }
+
+    .doc-sec-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0369A1;
+      margin-bottom: 4px;
+    }
+
+    .doc-sec-content {
+      font-size: 11px;
+      color: #334155;
+      background: #F8FAFC;
+      border-radius: 8px;
+      padding: 7px 9px;
+      line-height: 1.5;
+    }
+
+    .doc-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .doc-btn {
+      flex: 1;
+      padding: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .doc-btn-primary { background: var(--primary); color: #fff; border: none; }
+    .doc-btn-secondary { background: #F1F5F9; color: #475569; }
+
+    /* ========================================= */
+    /* Member Settings Screen (家人设置模块)    */
+    /* ========================================= */
+    #settings-mode-view {
+      display: none;
+    }
+
+    .settings-header-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+    }
+
+    .settings-member-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .set-mem-pill {
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #FFF;
+      transition: all 0.2s;
+    }
+
+    .set-mem-pill.active {
+      background: #FFFFFF;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .settings-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .settings-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .settings-slot-counter {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 600;
+      background: var(--primary-light);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    /* 6 Configured Slots (Editable) */
+    .configured-slots-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .slot-item {
+      background: #F8FAFC;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .slot-item .del-btn {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      background: #EF4444;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+      border: 1px solid #fff;
+    }
+
+    .slot-item.empty-slot {
+      border: 1.5px dashed #94A3B8;
+      background: #F1F5F9;
+      color: #94A3B8;
+      justify-content: center;
+      min-height: 58px;
+      font-size: 11px;
+    }
+
+    .slot-item-emoji {
+      font-size: 18px;
+    }
+
+    .slot-item-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Available Metric Library to Add */
+    .library-section {
+      background: #F8FAFC;
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #E2E8F0;
+    }
+
+    .library-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .library-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .lib-chip {
+      padding: 5px 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-main);
+      transition: all 0.15s;
+    }
+
+    .lib-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .lib-chip .add-icon {
+      color: var(--accent-green);
+      font-weight: 700;
+    }
+
+    .custom-add-input-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .custom-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      outline: none;
+    }
+    .custom-input:focus {
+      border-color: var(--primary);
+    }
+
+    .custom-btn {
+      padding: 6px 10px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .toggle-desc {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .ios-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+    .ios-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #CBD5E1; transition: .2s; border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
+      background-color: white; transition: .2s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    .save-settings-bar {
+      margin-top: 14px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app-workspace">
+
+  <!-- Left: Interactive Scenario Guide -->
+  <div class="demo-guide">
+    <h1><span>🌿</span> 安康记 (FamilyCare)</h1>
+    <div class="app-brand-subtitle">全生命周期家庭健康与病程监护系统</div>
+    <p class="lead">已按您的要求更新：支持在<b>“家人设置”</b>中为每位成员单独配置 <b>6 个专属快捷记录项</b>，并支持在快捷面板中<b>增加其他信息</b>。请在右侧手机模拟器中交互：</p>
+
+    <div class="scenario-card active" id="scenario-baby" onclick="switchMember('baby')">
+      <h3>
+        <span>👶 场景一：婴儿安安 (8个月)</span>
+        <span class="badge badge-fever">发烧感冒病程</span>
+      </h3>
+      <p>首页自适应展示安安配置的指标（奶量、大便、体温、辅食）。开启感冒发烧模式：双轴体温图与退热药安全间隔防呆。</p>
+    </div>
+
+    <div class="scenario-card" id="scenario-elder" onclick="switchMember('grandpa')">
+      <h3>
+        <span>👴 场景二：长辈张大爷 (68岁)</span>
+        <span class="badge badge-elder">慢病尿酸追踪</span>
+      </h3>
+      <p>自动切换为长辈关怀模式：突出尿酸监测（485高危预警）、血压脉搏、痛风高嘌呤饮食避坑清单及慢病服药打卡。</p>
+    </div>
+
+    <div class="scenario-card" id="scenario-settings" onclick="openMemberSettings()">
+      <h3>
+        <span>⚙️ 场景三：家人设置与6项快捷配置</span>
+        <span class="badge badge-config">核心新交互</span>
+      </h3>
+      <p>进入家人设置，可为<b>安安或张大爷自定义 6 个常用快捷录入项</b>（支持移除、从指标库选择添加、或自定义新项），保存后即时联动！</p>
+    </div>
+
+    <div class="scenario-card" id="scenario-record" onclick="openQuickAdd('default')">
+      <h3>
+        <span>⚡ 场景四：快速记一条数据（联动6项+其他）</span>
+        <span class="badge badge-quick">动态呈现</span>
+      </h3>
+      <p>点击手机右下角 <b>"+" 号悬浮按钮</b>，弹出的快捷面板<b>精确呈现当前成员配置的6项</b>，并提供<b>“➕ 记录其他信息”</b>展开全部指标。</p>
+    </div>
+
+    <div class="scenario-card" id="scenario-summary" onclick="showDoctorSummary()">
+      <h3>
+        <span>🏥 场景五：一键生成就医总结单</span>
+        <span class="badge" style="background:#0284C7;color:#fff;">门诊神器</span>
+      </h3>
+      <p>就医时一键导出近48小时发热峰值、用药清单（精确防重复服药）、排泄与精神状态长卡，直接向医生出示。</p>
+    </div>
+
+    <div class="interaction-tips">
+      <strong>💡 试一试这些交互操作：</strong>
+      <ul>
+        <li>点击左侧<b>“场景三：家人设置”</b>或手机右上角 ⚙️ 图标，查看并修改安安或爷爷的 6 个快捷槽位。</li>
+        <li>修改完点击“保存”，再点击手机右下角 <b>"+" 按钮</b>，查看快捷弹窗是否实时更新。</li>
+        <li>在快捷弹窗中点击<b>“➕ 记录其他信息 (展开全部指标)”</b>，体验记录任意额外健康数据。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right: Android Mobile Mockup -->
+  <div class="mobile-frame-container">
+    <div class="phone-screen">
+      
+      <!-- Android Status Bar -->
+      <div class="android-status-bar">
+        <span>09:41</span>
+        <div class="status-notch"></div>
+        <div class="status-icons">
+          <span>5G</span>
+          <span>88%</span>
+        </div>
+      </div>
+
+      <!-- Scrollable Main View -->
+      <div class="phone-content" id="phoneContent">
+
+        <!-- App Header & Family Carousel -->
+        <div class="app-header">
+          <div class="app-title-group">
+            <h2><span>🌿</span> 安康记</h2>
+          </div>
+          <div class="app-header-actions">
+            <div class="sync-status">已同步</div>
+            <div class="settings-btn-icon" onclick="openMemberSettings()" title="家人设置">⚙️</div>
+          </div>
+        </div>
+
+        <!-- Family Member Carousel -->
+        <div class="family-carousel" id="mainFamilyCarousel">
+          <div class="member-tab active fever-alert" id="tab-baby" onclick="switchMember('baby')">
+            <div class="avatar">👶</div>
+            <div class="info">
+              <span class="name">安安</span>
+              <span class="tag">8个月 · 🤒发热中</span>
+            </div>
+          </div>
+          <div class="member-tab" id="tab-grandpa" onclick="switchMember('grandpa')">
+            <div class="avatar">👴</div>
+            <div class="info">
+              <span class="name">张大爷</span>
+              <span class="tag">68岁 · 慢病管理</span>
+            </div>
+          </div>
+          <div class="member-tab" id="tab-mom" onclick="switchMember('mom')">
+            <div class="avatar">👩</div>
+            <div class="info">
+              <span class="name">林女士 (我)</span>
+              <span class="tag">34岁 · 健康日常</span>
+            </div>
+          </div>
+          <div class="member-tab" style="border-style:dashed;" onclick="openMemberSettings()">
+            <div class="avatar">➕</div>
+            <div class="info"><span class="name">管理</span></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Container 1: Baby Mode -->
+        <div id="baby-mode-view">
+          <!-- Fever Status Banner -->
+          <div class="alert-banner" onclick="showDoctorSummary()">
+            <div class="alert-banner-header">
+              <span class="alert-title">⚠️ 感冒发热期 · 第 2 天</span>
+              <span class="alert-action-btn">生成就诊单 ➔</span>
+            </div>
+            <p class="alert-desc">当前体温 <b>38.5℃</b>。上次服用对乙酰氨基酚已过 <b>4.5小时</b>，退热药处于安全可服窗口。</p>
+          </div>
+
+          <!-- Quick Metrics Grid -->
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">今日总奶量</span>
+                <span class="metric-icon">🍼</span>
+              </div>
+              <div class="metric-val" id="metric-milk-val">580 <small>ml</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-good">目标 800ml (72%)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">今日便便</span>
+                <span class="metric-icon">💩</span>
+              </div>
+              <div class="metric-val" id="metric-poop-val">2 <small>次</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-good">黄色·软糊状(4型)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">当前体温</span>
+                <span class="metric-icon">🌡️</span>
+              </div>
+              <div class="metric-val" style="color:var(--accent-coral);" id="metric-temp-val">38.5 <small>℃</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-danger">中度发热 (腋温)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">辅食与水分</span>
+                <span class="metric-icon">🥣</span>
+              </div>
+              <div class="metric-val">120 <small>ml水</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-good">苹果泥小半碗</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fever & Medication Dual-Axis Timeline Card -->
+          <div class="fever-tracker-card">
+            <div class="section-title">
+              <span>🤒 近24小时体温与用药走势</span>
+              <a onclick="showDoctorSummary()">详情报告 ➔</a>
+            </div>
+            <div class="chart-container">
+              <canvas id="feverChart" width="340" height="135"></canvas>
+            </div>
+            <div class="medication-timeline-badge">
+              <div class="med-pill">💊 上次用药：对乙酰氨基酚 (3.5ml)</div>
+              <span>4.5小时前</span>
+            </div>
+          </div>
+
+          <!-- Family Activity Timeline -->
+          <div class="timeline-card">
+            <div class="section-title">
+              <span>🕒 今日健康流水记录</span>
+              <span style="font-size:11px;color:var(--text-sub);">协同 3 人在线</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon icon-temp">🌡️</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>测得体温 38.5℃</span>
+                  <span class="timeline-time">09:10</span>
+                </div>
+                <div class="timeline-sub">精神尚可，额头微汗，喝水 50ml</div>
+                <div class="timeline-author">由 妈妈 记录</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-icon icon-milk">🍼</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>配方奶 180ml</span>
+                  <span class="timeline-time">08:00</span>
+                </div>
+                <div class="timeline-sub">胃口平稳，全部喝完无吐奶</div>
+                <div class="timeline-author">由 月嫂阿姨 记录</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-icon icon-med">💊</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>泰诺林混悬滴剂 3.5ml</span>
+                  <span class="timeline-time">04:40</span>
+                </div>
+                <div class="timeline-sub">因夜间体温升至 38.9℃ 给药</div>
+                <div class="timeline-author">由 爸爸 记录</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-icon icon-poop">💩</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>排便 1 次 (布里斯托4型)</span>
+                  <span class="timeline-time">昨日 21:15</span>
+                </div>
+                <div class="timeline-sub">金黄色，软糊香蕉状，量中，无黏液无血丝</div>
+                <div class="timeline-author">由 妈妈 记录</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Container 2: Grandpa Mode -->
+        <div id="grandpa-mode-view" style="display:none;">
+          <!-- Elder Uric Acid Alert Banner -->
+          <div class="alert-banner elder-alert">
+            <div class="alert-banner-header">
+              <span class="alert-title">⚠️ 尿酸指标预警 · 需控饮食</span>
+              <span class="alert-action-btn">查看高嘌呤禁忌 ➔</span>
+            </div>
+            <p class="alert-desc">今晨空腹尿酸 <b>485 μmol/L</b> (警戒线 420)，今日禁饮浓肉汤、海鲜与啤酒，多饮水。</p>
+          </div>
+
+          <!-- Grandpa Metrics Grid -->
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">最新尿酸</span>
+                <span class="metric-icon">🧪</span>
+              </div>
+              <div class="metric-val" style="color:#C2410C;" id="metric-uric-val">485 <small>μmol/L</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-warn">偏高 (标准 ≤420)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">晨起血压</span>
+                <span class="metric-icon">❤️</span>
+              </div>
+              <div class="metric-val">128/82 <small>mmHg</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-good">脉搏 72 · 达标</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">今日慢病服药</span>
+                <span class="metric-icon">💊</span>
+              </div>
+              <div class="metric-val">2/3 <small>次已服</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-warn">晚间非布司他待服</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-name">今日饮水量</span>
+                <span class="metric-icon">💧</span>
+              </div>
+              <div class="metric-val">1600 <small>ml</small></div>
+              <div class="metric-status">
+                <span class="status-tag status-good">促进尿酸排泄</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Uric Acid Trend Chart -->
+          <div class="fever-tracker-card">
+            <div class="section-title">
+              <span>📊 近7天尿酸波动与降酸走势</span>
+              <a href="javascript:void(0)" style="color:var(--primary);">达标线:420</a>
+            </div>
+            <div class="chart-container">
+              <canvas id="uricChart" width="340" height="135"></canvas>
+            </div>
+            <div class="medication-timeline-badge" style="background:#EEF2FF;border-color:#C7D2FE;color:#3730A3;">
+              <div class="med-pill">💊 每日规律服药：非布司他 20mg / 晨间络活喜</div>
+              <span>按时打卡中</span>
+            </div>
+          </div>
+
+          <!-- Grandpa Activity Timeline -->
+          <div class="timeline-card">
+            <div class="section-title">
+              <span>🕒 爷爷健康记录</span>
+              <span style="font-size:11px;color:var(--text-sub);">关怀大字模式</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon icon-uric">🧪</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>测尿酸 485 μmol/L</span>
+                  <span class="timeline-time">07:20</span>
+                </div>
+                <div class="timeline-sub">空腹指尖血检测，已提醒多喝温开水</div>
+                <div class="timeline-author">由 爷爷 自己打卡</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-icon icon-med">💊</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>降压药服药打卡</span>
+                  <span class="timeline-time">07:40</span>
+                </div>
+                <div class="timeline-sub">络活喜 1片，饭后半小时服用</div>
+                <div class="timeline-author">由 妈妈 协助确认</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-icon icon-poop">💩</div>
+              <div class="timeline-details">
+                <div class="timeline-header">
+                  <span>晨间排便正常</span>
+                  <span class="timeline-time">08:10</span>
+                </div>
+                <div class="timeline-sub">成形软便，无腹胀不适</div>
+                <div class="timeline-author">由 爷爷 记录</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Container 3: Mom Mode -->
+        <div id="mom-mode-view" style="display:none;">
+          <div class="timeline-card" style="margin-top:10px;text-align:center;padding:30px 16px;">
+            <div style="font-size:40px;margin-bottom:10px;">🌸</div>
+            <h3 style="font-size:16px;color:var(--text-main);margin-bottom:6px;">林女士的健康中心</h3>
+            <p style="font-size:13px;color:var(--text-sub);line-height:1.5;">支持记录月经周期、日常体重打卡、每日饮水及情绪日志。可在家人设置中自由选配快捷项。</p>
+          </div>
+        </div>
+
+        <!-- Dynamic Container 4: Member Settings View (家人设置模块) -->
+        <div id="settings-mode-view">
+          <div class="settings-header-banner">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h3 style="font-size:16px;font-weight:700;">⚙️ 家人个性化设置</h3>
+              <span style="font-size:11px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:12px;cursor:pointer;" onclick="closeMemberSettings()">返回首页 ✕</span>
+            </div>
+            <p style="font-size:11px;opacity:0.85;margin-top:4px;">正在配置成员个人档案与首页专属 6 项快捷录入</p>
+            
+            <!-- Member Selector in Settings -->
+            <div class="settings-member-selector">
+              <span class="set-mem-pill active" id="set-pill-baby" onclick="selectSettingsMember('baby')">👶 安安 (8个月)</span>
+              <span class="set-mem-pill" id="set-pill-grandpa" onclick="selectSettingsMember('grandpa')">👴 张大爷 (68岁)</span>
+              <span class="set-mem-pill" id="set-pill-mom" onclick="selectSettingsMember('mom')">👩 林女士 (我)</span>
+            </div>
+          </div>
+
+          <!-- Basic Profile Card -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <span>👤 基础档案与健康标签</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-main);line-height:1.8;" id="settings-profile-info">
+              • <b>身份/角色</b>：次子 (婴儿阶段)<br>
+              • <b>过敏源标注</b>：鸡蛋清轻度湿疹反应<br>
+              • <b>重点监护期</b>：感冒发烧病程跟踪中
+            </div>
+          </div>
+
+          <!-- Quick 6 Items Config Card -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <span>⚡ 专属快速记录项配置</span>
+              <span class="settings-slot-counter" id="slot-counter">已选 6/6 项</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-sub);margin-bottom:10px;">
+              点击右上角 <b>✕</b> 可移除，从下方指标库点选填补（最多保留 6 个高频项）：
+            </p>
+
+            <!-- 6 Slots Display -->
+            <div class="configured-slots-list" id="configuredSlotsContainer">
+              <!-- Rendered via JavaScript -->
+            </div>
+
+            <!-- Library of unused metrics -->
+            <div class="library-section">
+              <div class="library-title">📦 可选指标库（点击直接加入快捷位）</div>
+              <div class="library-chips" id="availableLibraryContainer">
+                <!-- Rendered via JS -->
+              </div>
+
+              <!-- Add custom item -->
+              <div class="custom-add-input-row">
+                <input type="text" class="custom-input" id="customItemInput" placeholder="输入自定义指标，如: 咳嗽/做雾化/维生素">
+                <button class="custom-btn" onclick="addCustomMetric()">+ 添加</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disease Mode Switch -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <span>🏥 场景监护模式开关</span>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label" id="toggleModeTitle">生病/发热追踪模式</div>
+                <div class="toggle-desc">开启后置顶体温与退热药安全间隔双轴走势图</div>
+              </div>
+              <label class="ios-switch">
+                <input type="checkbox" id="illnessModeSwitch" checked onchange="toggleIllnessMode(this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">家庭协同实时推送</div>
+                <div class="toggle-desc">他人记录此人数据时（如阿姨喂奶）立即通知我</div>
+              </div>
+              <label class="ios-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <div class="save-settings-bar">
+            <button class="submit-btn" onclick="saveMemberSettings()">保存配置并同步给全家</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Floating Action Button -->
+      <button class="fab-btn" id="mainFabBtn" onclick="openQuickAdd('default')" title="快速记录一条">+</button>
+
+      <!-- Bottom Navigation Bar -->
+      <div class="android-nav-bar">
+        <div class="nav-item active" id="nav-home" onclick="navToHome()">
+          <span class="nav-item-icon">🏠</span>
+          <span>首页</span>
+        </div>
+        <div class="nav-item" id="nav-doc" onclick="showDoctorSummary()">
+          <span class="nav-item-icon">📋</span>
+          <span>就诊单</span>
+        </div>
+        <div class="nav-item" id="nav-trend" onclick="alert('趋势分析：支持多指标联动查看（如尿酸与高嘌呤饮食、奶量与体重增长）')">
+          <span class="nav-item-icon">📈</span>
+          <span>趋势分析</span>
+        </div>
+        <div class="nav-item" id="nav-settings" onclick="openMemberSettings()">
+          <span class="nav-item-icon">⚙️</span>
+          <span>家人设置</span>
+        </div>
+      </div>
+
+      <!-- Quick Add Bottom Sheet Modal -->
+      <div class="modal-overlay" id="quickAddModal">
+        <div class="bottom-sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-title">
+            <span>⚡ 快速记一条数据</span>
+            <span class="sheet-title-badge" id="quickModalMemberBadge">当前成员: 安安</span>
+            <button class="close-btn" onclick="closeQuickAdd()">✕</button>
+          </div>
+
+          <!-- Dynamic 6 Configured Category Selector -->
+          <div class="quick-category-grid" id="quickCategoryContainer">
+            <!-- Dynamically populated from active member's 6 configured items -->
+          </div>
+
+          <!-- Expand other metrics toggle -->
+          <div class="more-metrics-trigger" onclick="toggleMoreMetrics()">
+            <span>➕ 记录其他信息 / 全部指标库 ▾</span>
+          </div>
+
+          <!-- Expanded metrics panel -->
+          <div class="more-metrics-panel" id="moreMetricsPanel">
+            <div style="font-size:11px;font-weight:600;color:var(--text-sub);margin-bottom:6px;">选择其他指标记录：</div>
+            <div class="more-chips-grid" id="moreMetricsGrid">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Dynamic Input Forms -->
+          <!-- 1. Milk Form -->
+          <div class="cat-form" id="form-milk">
+            <div class="input-group">
+              <label class="input-label">喂养类型</label>
+              <div class="input-chips">
+                <span class="chip selected">配方奶</span>
+                <span class="chip">母乳瓶喂</span>
+                <span class="chip">亲喂(计时)</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">摄入奶量 (ml)</label>
+              <div class="slider-container">
+                <input type="range" min="30" max="300" step="10" value="150" id="milkRange" oninput="document.getElementById('milkValDisp').innerText = this.value">
+                <div class="slider-value"><span id="milkValDisp">150</span> ml</div>
+              </div>
+            </div>
+            <div class="input-chips" style="margin-bottom:10px;">
+              <span class="chip" onclick="setMilkQuick(90)">90ml</span>
+              <span class="chip" onclick="setMilkQuick(120)">120ml</span>
+              <span class="chip" onclick="setMilkQuick(150)">150ml</span>
+              <span class="chip" onclick="setMilkQuick(180)">180ml</span>
+              <span class="chip" onclick="setMilkQuick(210)">210ml</span>
+            </div>
+          </div>
+
+          <!-- 2. Poop Form -->
+          <div class="cat-form" id="form-poop" style="display:none;">
+            <div class="input-group">
+              <label class="input-label">大便性状 (布里斯托标准)</label>
+              <div class="input-chips">
+                <span class="chip">1型-羊粪球</span>
+                <span class="chip">2型-凹凸香肠</span>
+                <span class="chip selected">4型-软滑香蕉</span>
+                <span class="chip">6型-糊状便</span>
+                <span class="chip">7型-水样蛋花</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">颜色分类</label>
+              <div class="input-chips">
+                <span class="chip selected" style="border-left:4px solid #EAB308;">黄金色</span>
+                <span class="chip" style="border-left:4px solid #16A34A;">墨绿色</span>
+                <span class="chip" style="border-left:4px solid #92400E;">棕褐色</span>
+                <span class="chip" style="border-left:4px solid #DC2626;">红色(带血丝)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Temp Form -->
+          <div class="cat-form" id="form-temp" style="display:none;">
+            <div class="input-group">
+              <label class="input-label">体温数值 (℃)</label>
+              <div class="slider-container">
+                <input type="range" min="35.5" max="41.0" step="0.1" value="38.5" id="tempRange" oninput="document.getElementById('tempValDisp').innerText = parseFloat(this.value).toFixed(1)">
+                <div class="slider-value" style="color:var(--accent-coral);"><span id="tempValDisp">38.5</span> ℃</div>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">测量部位</label>
+              <div class="input-chips">
+                <span class="chip selected">腋温</span>
+                <span class="chip">耳温</span>
+                <span class="chip">额温</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Uric Acid Form -->
+          <div class="cat-form" id="form-uric" style="display:none;">
+            <div class="input-group">
+              <label class="input-label">尿酸读数 (μmol/L)</label>
+              <div class="slider-container">
+                <input type="range" min="200" max="700" step="5" value="480" id="uricRange" oninput="document.getElementById('uricValDisp').innerText = this.value">
+                <div class="slider-value" style="color:#C2410C;"><span id="uricValDisp">480</span></div>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">状态</label>
+              <div class="input-chips">
+                <span class="chip selected">清晨空腹</span>
+                <span class="chip">餐后</span>
+                <span class="chip">关节疼痛期</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Medication Form -->
+          <div class="cat-form" id="form-med" style="display:none;">
+            <div class="input-group">
+              <label class="input-label">选择常用药物</label>
+              <div class="input-chips">
+                <span class="chip selected">对乙酰氨基酚 (泰诺林)</span>
+                <span class="chip">布洛芬混悬液 (美林)</span>
+                <span class="chip">非布司他 (降尿酸)</span>
+                <span class="chip">络活喜 (降压)</span>
+              </div>
+            </div>
+            <div class="medication-timeline-badge" style="margin-bottom:10px;">
+              <span>⚠️ 智能防呆：退烧药同一成分建议间隔 4-6 小时以上！</span>
+            </div>
+          </div>
+
+          <!-- 6. Diet / Water / Generic Form -->
+          <div class="cat-form" id="form-diet" style="display:none;">
+            <div class="input-group">
+              <label class="input-label">辅食/饮食内容</label>
+              <input type="text" class="custom-input" style="width:100%;margin-bottom:8px;" placeholder="例如：米粉 30g + 蛋黄 1/4 个">
+            </div>
+          </div>
+
+          <div class="cat-form" id="form-generic" style="display:none;">
+            <div class="input-group">
+              <label class="input-label" id="genericFormLabel">记录信息</label>
+              <input type="text" class="custom-input" style="width:100%;margin-bottom:8px;" placeholder="输入数值或文字记录...">
+            </div>
+          </div>
+
+          <button class="submit-btn" onclick="saveRecord()">确认并保存到时间线</button>
+        </div>
+      </div>
+
+      <!-- Doctor Summary Modal -->
+      <div class="doctor-summary-modal" id="doctorSummaryModal">
+        <div class="doctor-card">
+          <span class="doc-badge">🏥 儿科面诊专用长卡 (近48小时)</span>
+          <h2 class="doc-title">安安 (8个月·男) 门诊快速交接单</h2>
+          <div class="doc-sub">导出时间：今天 09:30 | 监护人：林女士 (138****0000)</div>
+
+          <div class="doc-section">
+            <div class="doc-sec-title">1. 发热与体温走势</div>
+            <div class="doc-sec-content">
+              • <b>起病时间</b>：昨日 02:00 开始发热，已持续约 31 小时。<br>
+              • <b>最高温度</b>：<b>39.1 ℃</b> (昨日 18:30 腋下测量)。<br>
+              • <b>发热频次</b>：近24小时内高热起伏 3 次，服药后体温能降至 37.3℃ 左右。
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-sec-title">2. 已给药物及剂量 (防重复给药)</div>
+            <div class="doc-sec-content">
+              • 昨天 04:30: 对乙酰氨基酚 3.5ml<br>
+              • 昨天 12:40: 布洛芬混悬滴剂 3.0ml<br>
+              • 昨天 19:15: 对乙酰氨基酚 3.5ml<br>
+              • 今天 04:40: 对乙酰氨基酚 3.5ml (已间隔 9.5 小时，无过量风险)
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-sec-title">3. 伴随症状与精神状态</div>
+            <div class="doc-sec-content">
+              • 流清鼻涕，晨起轻微干咳 2-3 声，无抽搐，无皮疹。<br>
+              • 精神状态：退烧后能正常玩耍，发烧时哭闹黏人。<br>
+              • 食欲：配方奶量正常 (日均 700ml)，饮温开水约 200ml。
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-sec-title">4. 排泄与过敏史</div>
+            <div class="doc-sec-content">
+              • 大便：正常 2 次/日，黄色软糊便，无脓血黏液。<br>
+              • 小便：尿量正常，淡黄。<br>
+              • <b>已知过敏史</b>：无已知药物过敏，鸡蛋清轻微迟发性湿疹。
+            </div>
+          </div>
+
+          <div class="doc-actions">
+            <button class="doc-btn doc-btn-primary" onclick="alert('已生成并复制医生就诊高清长图至相册')">保存为问诊长图</button>
+            <button class="doc-btn doc-btn-secondary" onclick="closeDoctorSummary()">返回</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Global Data Model for Family Members & Their 6 Configured Quick Slots
+  const memberProfiles = {
+    baby: {
+      name: '安安',
+      relation: '次子',
+      age: '8个月',
+      stage: 'infant',
+      hasIllness: true,
+      illnessTitle: '感冒发热监护模式',
+      quickSlots: [
+        { id: 'milk', name: '记奶量', emoji: '🍼' },
+        { id: 'poop', name: '记大便', emoji: '💩' },
+        { id: 'temp', name: '记体温', emoji: '🌡️' },
+        { id: 'diet', name: '记辅食', emoji: '🥣' },
+        { id: 'med',  name: '记用药', emoji: '💊' },
+        { id: 'sleep', name: '记睡眠', emoji: '😴' }
+      ]
+    },
+    grandpa: {
+      name: '张大爷',
+      relation: '爷爷',
+      age: '68岁',
+      stage: 'elder',
+      hasIllness: true,
+      illnessTitle: '高尿酸/慢病管理模式',
+      quickSlots: [
+        { id: 'uric', name: '记尿酸', emoji: '🧪' },
+        { id: 'bp',   name: '记血压', emoji: '❤️' },
+        { id: 'med',  name: '记服药', emoji: '💊' },
+        { id: 'water', name: '记饮水', emoji: '💧' },
+        { id: 'poop', name: '记大便', emoji: '💩' },
+        { id: 'steps', name: '记步数', emoji: '🚶' }
+      ]
+    },
+    mom: {
+      name: '林女士',
+      relation: '妈妈 (我)',
+      age: '34岁',
+      stage: 'adult',
+      hasIllness: false,
+      illnessTitle: '健康日常模式',
+      quickSlots: [
+        { id: 'water', name: '记饮水', emoji: '💧' },
+        { id: 'weight', name: '记体重', emoji: '⚖️' },
+        { id: 'sleep', name: '记睡眠', emoji: '😴' },
+        { id: 'period', name: '生理期', emoji: '🌸' },
+        { id: 'diet',  name: '记饮食', emoji: '🥗' },
+        { id: 'mood',  name: '记心情', emoji: '✨' }
+      ]
+    }
+  };
+
+  // Full Global Metrics Catalog
+  const allMetricCatalog = [
+    { id: 'milk', name: '记奶量', emoji: '🍼' },
+    { id: 'poop', name: '记大便', emoji: '💩' },
+    { id: 'temp', name: '记体温', emoji: '🌡️' },
+    { id: 'uric', name: '记尿酸', emoji: '🧪' },
+    { id: 'med', name: '记用药', emoji: '💊' },
+    { id: 'diet', name: '记饮食/辅食', emoji: '🥣' },
+    { id: 'bp', name: '记血压', emoji: '❤️' },
+    { id: 'water', name: '记饮水', emoji: '💧' },
+    { id: 'sleep', name: '记睡眠', emoji: '😴' },
+    { id: 'weight', name: '记体重', emoji: '⚖️' },
+    { id: 'cough', name: '记咳嗽', emoji: '🗣️' },
+    { id: 'rash', name: '记皮疹', emoji: '🔴' },
+    { id: 'vomit', name: '记呕吐', emoji: '🤮' },
+    { id: 'steps', name: '记步数', emoji: '🚶' },
+    { id: 'glucose', name: '测血糖', emoji: '🩸' },
+    { id: 'period', name: '生理期', emoji: '🌸' },
+    { id: 'mood', name: '记情绪', emoji: '✨' }
+  ];
+
+  let currentActiveMember = 'baby';
+  let settingsTargetMember = 'baby';
+
+  // Draw Fever Chart
+  function drawFeverChart() {
+    const canvas = document.getElementById('feverChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const temps = [36.5, 37.5, 38.5, 39.5];
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '10px -apple-system, sans-serif';
+
+    temps.forEach(t => {
+      const y = h - ((t - 36.0) / 4.0) * (h - 26) - 13;
+      ctx.beginPath();
+      ctx.moveTo(35, y);
+      ctx.lineTo(w - 10, y);
+      ctx.stroke();
+      ctx.fillText(t.toFixed(1) + '°', 5, y + 3);
+    });
+
+    const dangerY = h - ((38.5 - 36.0) / 4.0) * (h - 26) - 13;
+    ctx.strokeStyle = 'rgba(230, 57, 70, 0.35)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(35, dangerY);
+    ctx.lineTo(w - 10, dangerY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const data = [
+      { t: '12:00', val: 37.2, med: null },
+      { t: '16:00', val: 38.3, med: null },
+      { t: '19:15', val: 39.1, med: '泰诺林' },
+      { t: '22:00', val: 37.5, med: null },
+      { t: '02:00', val: 38.0, med: null },
+      { t: '04:40', val: 38.9, med: '泰诺林' },
+      { t: '09:00', val: 38.5, med: null }
+    ];
+
+    const stepX = (w - 60) / (data.length - 1);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#E63946';
+    ctx.lineWidth = 2.5;
+
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    data.forEach((pt, idx) => {
+      const x = 40 + idx * stepX;
+      const y = h - ((pt.val - 36.0) / 4.0) * (h - 26) - 13;
+
+      ctx.beginPath();
+      ctx.fillStyle = pt.val >= 38.5 ? '#E63946' : '#2A9D8F';
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (pt.med) {
+        ctx.fillStyle = '#7209B7';
+        ctx.beginPath();
+        ctx.arc(x, y - 14, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('💊', x - 4, y - 10);
+      }
+
+      ctx.fillStyle = '#64748B';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(pt.t, x - 12, h - 3);
+    });
+  }
+
+  // Draw Uric Acid Chart
+  function drawUricChart() {
+    const canvas = document.getElementById('uricChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const values = [520, 505, 490, 510, 470, 495, 485];
+    const days = ['周一', '周二', '周三', '周四', '周五', '周六', '今天'];
+
+    const threshY = h - ((420 - 350) / 250) * (h - 26) - 13;
+    ctx.strokeStyle = 'rgba(42, 157, 143, 0.4)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(35, threshY);
+    ctx.lineTo(w - 10, threshY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#2A9D8F';
+    ctx.font = '9px sans-serif';
+    ctx.fillText('达标线 420', 5, threshY + 3);
+
+    const stepX = (w - 60) / (values.length - 1);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#F4A261';
+    ctx.lineWidth = 2.5;
+
+    values.forEach((v, idx) => {
+      const x = 45 + idx * stepX;
+      const y = h - ((v - 350) / 250) * (h - 26) - 13;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    values.forEach((v, idx) => {
+      const x = 45 + idx * stepX;
+      const y = h - ((v - 350) / 250) * (h - 26) - 13;
+
+      ctx.beginPath();
+      ctx.fillStyle = v > 420 ? '#C2410C' : '#2A9D8F';
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748B';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(days[idx], x - 10, h - 3);
+
+      ctx.fillStyle = '#1E293B';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillText(v, x - 8, y - 8);
+    });
+  }
+
+  // Switch Active Member in Main View
+  function switchMember(member) {
+    currentActiveMember = member;
+    navToHome();
+
+    document.querySelectorAll('.member-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.scenario-card').forEach(el => el.classList.remove('active'));
+
+    document.getElementById('baby-mode-view').style.display = 'none';
+    document.getElementById('grandpa-mode-view').style.display = 'none';
+    document.getElementById('mom-mode-view').style.display = 'none';
+
+    if (member === 'baby') {
+      document.getElementById('tab-baby').classList.add('active');
+      const sc = document.getElementById('scenario-baby');
+      if (sc) sc.classList.add('active');
+      document.getElementById('baby-mode-view').style.display = 'block';
+      setTimeout(drawFeverChart, 50);
+    } else if (member === 'grandpa') {
+      document.getElementById('tab-grandpa').classList.add('active');
+      const sc = document.getElementById('scenario-elder');
+      if (sc) sc.classList.add('active');
+      document.getElementById('grandpa-mode-view').style.display = 'block';
+      setTimeout(drawUricChart, 50);
+    } else if (member === 'mom') {
+      document.getElementById('tab-mom').classList.add('active');
+      document.getElementById('mom-mode-view').style.display = 'block';
+    }
+  }
+
+  function navToHome() {
+    document.getElementById('settings-mode-view').style.display = 'none';
+    document.getElementById('mainFamilyCarousel').style.display = 'flex';
+    document.getElementById('mainFabBtn').style.display = 'flex';
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-home').classList.add('active');
+
+    if (currentActiveMember === 'baby') {
+      document.getElementById('baby-mode-view').style.display = 'block';
+      setTimeout(drawFeverChart, 50);
+    } else if (currentActiveMember === 'grandpa') {
+      document.getElementById('grandpa-mode-view').style.display = 'block';
+      setTimeout(drawUricChart, 50);
+    } else {
+      document.getElementById('mom-mode-view').style.display = 'block';
+    }
+  }
+
+  // Member Settings Screen Logic
+  function openMemberSettings() {
+    document.querySelectorAll('.scenario-card').forEach(el => el.classList.remove('active'));
+    const sc = document.getElementById('scenario-settings');
+    if (sc) sc.classList.add('active');
+
+    document.getElementById('baby-mode-view').style.display = 'none';
+    document.getElementById('grandpa-mode-view').style.display = 'none';
+    document.getElementById('mom-mode-view').style.display = 'none';
+    document.getElementById('mainFamilyCarousel').style.display = 'none';
+    document.getElementById('mainFabBtn').style.display = 'none';
+
+    document.getElementById('settings-mode-view').style.display = 'block';
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-settings').classList.add('active');
+
+    selectSettingsMember(currentActiveMember || 'baby');
+  }
+
+  function closeMemberSettings() {
+    navToHome();
+  }
+
+  function selectSettingsMember(member) {
+    settingsTargetMember = member;
+    document.querySelectorAll('.set-mem-pill').forEach(p => p.classList.remove('active'));
+    const pill = document.getElementById('set-pill-' + member);
+    if (pill) pill.classList.add('active');
+
+    const prof = memberProfiles[member];
+    const infoEl = document.getElementById('settings-profile-info');
+    if (member === 'baby') {
+      infoEl.innerHTML = `• <b>身份/角色</b>：次子 (8个月 · 婴儿阶段)<br>• <b>过敏源标注</b>：鸡蛋清轻度湿疹反应<br>• <b>监护重点</b>：感冒发热病程跟踪中`;
+      document.getElementById('toggleModeTitle').innerText = '生病/发热追踪模式';
+      document.getElementById('illnessModeSwitch').checked = prof.hasIllness;
+    } else if (member === 'grandpa') {
+      infoEl.innerHTML = `• <b>身份/角色</b>：父亲/爷爷 (68岁 · 退休长辈)<br>• <b>慢性病标注</b>：原发性高尿酸血症、高血压2级<br>• <b>监护重点</b>：痛风饮食警戒、早晚规律服药`;
+      document.getElementById('toggleModeTitle').innerText = '高尿酸/慢病管理模式';
+      document.getElementById('illnessModeSwitch').checked = prof.hasIllness;
+    } else {
+      infoEl.innerHTML = `• <b>身份/角色</b>：妈妈 (34岁 · 家庭管理者)<br>• <b>健康目标</b>：作息规律、经期呵护、日常补水<br>• <b>监护重点</b>：全家健康总控`;
+      document.getElementById('toggleModeTitle').innerText = '健康日常打卡模式';
+      document.getElementById('illnessModeSwitch').checked = false;
+    }
+
+    renderSettingsSlots();
+  }
+
+  function renderSettingsSlots() {
+    const prof = memberProfiles[settingsTargetMember];
+    const container = document.getElementById('configuredSlotsContainer');
+    container.innerHTML = '';
+
+    const count = prof.quickSlots.length;
+    document.getElementById('slot-counter').innerText = `已选 ${count}/6 项`;
+
+    prof.quickSlots.forEach((slot, idx) => {
+      const div = document.createElement('div');
+      div.className = 'slot-item';
+      div.innerHTML = `
+        <span class="del-btn" onclick="removeQuickSlot(${idx})" title="移除此项">✕</span>
+        <span class="slot-item-emoji">${slot.emoji}</span>
+        <span class="slot-item-name">${slot.name}</span>
+      `;
+      container.appendChild(div);
+    });
+
+    for (let i = count; i < 6; i++) {
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'slot-item empty-slot';
+      emptyDiv.innerText = `+ 待选槽位 ${i+1}`;
+      container.appendChild(emptyDiv);
+    }
+
+    // Render Library
+    const libContainer = document.getElementById('availableLibraryContainer');
+    libContainer.innerHTML = '';
+    const currentIds = prof.quickSlots.map(s => s.id);
+
+    allMetricCatalog.forEach(item => {
+      if (!currentIds.includes(item.id)) {
+        const chip = document.createElement('span');
+        chip.className = 'lib-chip';
+        chip.innerHTML = `<span>${item.emoji}</span> ${item.name} <span class="add-icon">+</span>`;
+        chip.onclick = () => addQuickSlot(item);
+        libContainer.appendChild(chip);
+      }
+    });
+  }
+
+  function removeQuickSlot(idx) {
+    const prof = memberProfiles[settingsTargetMember];
+    if (prof.quickSlots.length <= 1) {
+      alert('至少保留 1 个常用记录项哦！');
+      return;
+    }
+    prof.quickSlots.splice(idx, 1);
+    renderSettingsSlots();
+  }
+
+  function addQuickSlot(item) {
+    const prof = memberProfiles[settingsTargetMember];
+    if (prof.quickSlots.length >= 6) {
+      alert('最多只能配置 6 个快捷槽位，请先点击右上角 ✕ 移除某项后再添加！');
+      return;
+    }
+    prof.quickSlots.push(item);
+    renderSettingsSlots();
+  }
+
+  function addCustomMetric() {
+    const input = document.getElementById('customItemInput');
+    const val = input.value.trim();
+    if (!val) {
+      alert('请输入自定义指标名称');
+      return;
+    }
+    const customItem = { id: 'cust_' + Date.now(), name: val, emoji: '📌' };
+    allMetricCatalog.push(customItem);
+    addQuickSlot(customItem);
+    input.value = '';
+  }
+
+  function toggleIllnessMode(checked) {
+    memberProfiles[settingsTargetMember].hasIllness = checked;
+  }
+
+  function saveMemberSettings() {
+    alert(`【${memberProfiles[settingsTargetMember].name}】的快捷记录项与设置已保存！已自动同步给全家照护者。`);
+    navToHome();
+  }
+
+  // Quick Add Bottom Sheet Dynamic Render
+  function openQuickAdd(defaultCategory) {
+    const modal = document.getElementById('quickAddModal');
+    modal.style.display = 'flex';
+
+    const prof = memberProfiles[currentActiveMember];
+    document.getElementById('quickModalMemberBadge').innerText = `当前成员: ${prof.name}`;
+
+    const catContainer = document.getElementById('quickCategoryContainer');
+    catContainer.innerHTML = '';
+
+    // Render active member's 6 quick slots
+    prof.quickSlots.forEach((slot, index) => {
+      const btn = document.createElement('div');
+      btn.className = 'cat-btn' + (index === 0 ? ' active' : '');
+      btn.id = 'cat-btn-' + slot.id;
+      btn.innerHTML = `
+        <span class="emoji">${slot.emoji}</span>
+        <span class="label">${slot.name}</span>
+      `;
+      btn.onclick = () => selectCategory(slot.id, slot.name);
+      catContainer.appendChild(btn);
+    });
+
+    // Populate "More / Other metrics" panel
+    const moreGrid = document.getElementById('moreMetricsGrid');
+    moreGrid.innerHTML = '';
+    const activeSlotIds = prof.quickSlots.map(s => s.id);
+
+    allMetricCatalog.forEach(item => {
+      if (!activeSlotIds.includes(item.id)) {
+        const itemBtn = document.createElement('div');
+        itemBtn.className = 'more-item-btn';
+        itemBtn.innerHTML = `${item.emoji} ${item.name}`;
+        itemBtn.onclick = () => {
+          document.getElementById('moreMetricsPanel').classList.remove('open');
+          selectCategory(item.id, item.name);
+        };
+        moreGrid.appendChild(itemBtn);
+      }
+    });
+
+    // Default select first slot or passed category
+    const targetCat = (defaultCategory && defaultCategory !== 'default') ? defaultCategory : (prof.quickSlots[0] ? prof.quickSlots[0].id : 'milk');
+    selectCategory(targetCat, '记录');
+  }
+
+  function closeQuickAdd() {
+    document.getElementById('quickAddModal').style.display = 'none';
+    document.getElementById('moreMetricsPanel').classList.remove('open');
+  }
+
+  function toggleMoreMetrics() {
+    const p = document.getElementById('moreMetricsPanel');
+    p.classList.toggle('open');
+  }
+
+  function selectCategory(catId, catName) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('cat-btn-' + catId);
+    if (btn) btn.classList.add('active');
+
+    document.querySelectorAll('.cat-form').forEach(f => f.style.display = 'none');
+
+    // Show corresponding form
+    if (catId === 'milk') {
+      document.getElementById('form-milk').style.display = 'block';
+    } else if (catId === 'poop') {
+      document.getElementById('form-poop').style.display = 'block';
+    } else if (catId === 'temp') {
+      document.getElementById('form-temp').style.display = 'block';
+    } else if (catId === 'uric') {
+      document.getElementById('form-uric').style.display = 'block';
+    } else if (catId === 'med') {
+      document.getElementById('form-med').style.display = 'block';
+    } else if (catId === 'diet') {
+      document.getElementById('form-diet').style.display = 'block';
+    } else {
+      document.getElementById('form-generic').style.display = 'block';
+      document.getElementById('genericFormLabel').innerText = `记录【${catName || catId}】数值与备注`;
+    }
+  }
+
+  function setMilkQuick(val) {
+    document.getElementById('milkRange').value = val;
+    document.getElementById('milkValDisp').innerText = val;
+  }
+
+  function saveRecord() {
+    closeQuickAdd();
+    alert('已成功记录！数据已自动同步到今日健康流水与家庭云端。');
+  }
+
+  // Doctor Summary Modal
+  function showDoctorSummary() {
+    document.getElementById('doctorSummaryModal').style.display = 'block';
+  }
+
+  function closeDoctorSummary() {
+    document.getElementById('doctorSummaryModal').style.display = 'none';
+  }
+
+  // Initialize
+  window.onload = function() {
+    drawFeverChart();
+  };
+</script>
+
+</body>
+</html>

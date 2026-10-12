@@ -199,9 +199,62 @@ fun MemberFormDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 5. 当前看护状态 (可一键切换首页感知形态)
+                var careTag by remember(initialMember) {
+                    mutableStateOf(initialMember?.currentTag ?: selectedPreset.defaultTag)
+                }
+                var feverAlarm by remember(initialMember) {
+                    mutableStateOf(initialMember?.hasFeverAlarm ?: false)
+                }
+
+                Text(
+                    text = "5. 当前看护场景状态",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF334155),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        Triple("日常健康", "健康日常", false),
+                        Triple("感冒发热监护 🔥", "感冒发热监护", true),
+                        Triple("慢病关怀 🧓", "慢病关怀", false),
+                        Triple("疫苗观察期 💉", "疫苗观察", false)
+                    ).forEach { (display, tagVal, isAlarm) ->
+                        val isSelected = careTag == tagVal
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSelected) (if (isAlarm) Color(0xFFFFF1F2) else Color(0xFFF0FDFA)) else Color(0xFFF8FAFC),
+                            border = BorderStroke(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = if (isSelected) (if (isAlarm) Rose500 else Teal600) else Color(0xFFE2E8F0)
+                            ),
+                            modifier = Modifier.clickable {
+                                careTag = tagVal
+                                feverAlarm = isAlarm
+                            }
+                        ) {
+                            Text(
+                                text = display,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) (if (isAlarm) Rose500 else Teal600) else Color(0xFF64748B),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // 5. 底部操作按钮
+                // 6. 底部操作按钮
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -229,8 +282,8 @@ fun MemberFormDialog(
                                 roleText = selectedPreset.roleName,
                                 ageText = if (ageText.isBlank()) "未知年龄" else ageText.trim(),
                                 weightKg = weight,
-                                currentTag = initialMember?.currentTag ?: selectedPreset.defaultTag,
-                                hasFeverAlarm = initialMember?.hasFeverAlarm ?: false,
+                                currentTag = careTag,
+                                hasFeverAlarm = feverAlarm,
                                 allergiesCsv = if (allergiesText.isBlank()) "无已知过敏" else allergiesText.trim()
                             )
                             onConfirm(newEntity)
