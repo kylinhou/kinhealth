@@ -77,9 +77,18 @@ fun KinHealthMainApp() {
                 KinTab.SETTINGS -> FamilySettingsScreen(
                     members = members,
                     onAddMemberClick = { showAddDialog = true },
+                    onUpdateMember = { updatedMember ->
+                        coroutineScope.launch(Dispatchers.IO) {
+                            context.database.memberDao().insertOrUpdate(updatedMember)
+                        }
+                    },
                     onDeleteMember = { id ->
                         coroutineScope.launch(Dispatchers.IO) {
                             context.database.memberDao().deleteMemberById(id)
+                            if (currentMemberId == id) {
+                                val remaining = members.filter { it.id != id }
+                                MemberContextRepository.setCurrentMember(remaining.firstOrNull()?.id)
+                            }
                         }
                     }
                 )

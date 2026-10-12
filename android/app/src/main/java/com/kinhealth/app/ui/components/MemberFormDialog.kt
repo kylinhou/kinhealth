@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.kinhealth.app.data.MemberEntity
+import com.kinhealth.app.ui.theme.Rose500
 import com.kinhealth.app.ui.theme.Teal600
 import java.util.UUID
 
@@ -39,15 +40,35 @@ val PRESETS = listOf(
 )
 
 @Composable
-fun AddMemberDialog(
+fun MemberFormDialog(
+    initialMember: MemberEntity? = null,
     onDismissRequest: () -> Unit,
     onConfirm: (MemberEntity) -> Unit
 ) {
-    var selectedPreset by remember { mutableStateOf(PRESETS[0]) }
-    var name by remember { mutableStateOf("") }
-    var ageText by remember { mutableStateOf("") }
-    var weightText by remember { mutableStateOf("") }
-    var allergiesText by remember { mutableStateOf("") }
+    val isEditMode = initialMember != null
+
+    var selectedPreset by remember(initialMember) {
+        val matched = PRESETS.firstOrNull { it.avatar == initialMember?.avatar }
+            ?: PRESETS.firstOrNull { it.roleName == initialMember?.roleText }
+            ?: PRESETS[0]
+        mutableStateOf(matched)
+    }
+
+    var name by remember(initialMember) {
+        mutableStateOf(initialMember?.name.orEmpty())
+    }
+    var ageText by remember(initialMember) {
+        val initialAge = initialMember?.ageText.orEmpty()
+        mutableStateOf(if (initialAge == "未知年龄") "" else initialAge)
+    }
+    var weightText by remember(initialMember) {
+        val w = initialMember?.weightKg ?: 0.0
+        mutableStateOf(if (w > 0) w.toString() else "")
+    }
+    var allergiesText by remember(initialMember) {
+        val a = initialMember?.allergiesCsv.orEmpty()
+        mutableStateOf(if (a == "无已知过敏") "" else a)
+    }
     var hasError by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismissRequest) {
@@ -65,13 +86,13 @@ fun AddMemberDialog(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "➕ 添加家庭成员档案",
+                    text = if (isEditMode) "✏️ 编辑家庭成员档案" else "➕ 添加家庭成员档案",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFF0F172A)
                 )
                 Text(
-                    text = "建立一人一档，专属性监护全家健康",
+                    text = if (isEditMode) "更新生长月龄、体重与特异体质红线" else "建立一人一档，专属性监护全家健康",
                     fontSize = 11.sp,
                     color = Color(0xFF64748B),
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -92,7 +113,7 @@ fun AddMemberDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     PRESETS.forEach { preset ->
-                        val isSelected = preset == selectedPreset
+                        val isSelected = preset.avatar == selectedPreset.avatar
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = if (isSelected) Color(0xFFF0FDFA) else Color(0xFFF8FAFC),
@@ -199,16 +220,17 @@ fun AddMemberDialog(
                                 hasError = true
                                 return@Button
                             }
-                            val weight = weightText.toDoubleOrNull() ?: 0.0
+                            val weight = weightText.toDoubleOrNull() ?: (initialMember?.weightKg ?: 0.0)
+                            val targetId = initialMember?.id ?: UUID.randomUUID().toString().substring(0, 8)
                             val newEntity = MemberEntity(
-                                id = UUID.randomUUID().toString().substring(0, 8),
+                                id = targetId,
                                 name = name.trim(),
                                 avatar = selectedPreset.avatar,
                                 roleText = selectedPreset.roleName,
                                 ageText = if (ageText.isBlank()) "未知年龄" else ageText.trim(),
                                 weightKg = weight,
-                                currentTag = selectedPreset.defaultTag,
-                                hasFeverAlarm = false,
+                                currentTag = initialMember?.currentTag ?: selectedPreset.defaultTag,
+                                hasFeverAlarm = initialMember?.hasFeverAlarm ?: false,
                                 allergiesCsv = if (allergiesText.isBlank()) "无已知过敏" else allergiesText.trim()
                             )
                             onConfirm(newEntity)
@@ -217,10 +239,63 @@ fun AddMemberDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("保存入库", fontWeight = FontWeight.Bold)
+                        Text(if (isEditMode) "保存修改" else "保存入库", fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+fun DeleteMemberConfirmDialog(
+    member: MemberEntity,
+    onDismissRequest: () -> Unit,
+    onConfirmDelete: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = "确认删除家庭成员？", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        },
+        text = {
+            Text(
+                text = "您即将删除【${member.name} (${member.roleText})】的家庭档案。\n删除后，该成员关联的所有专属健康记录与就诊病历将同步移除且无法恢复，请确认是否继续？",
+                fontSize = 13.sp,
+                color = Color(0xFF475569)
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmDelete,
+                colors = ButtonDefaults.buttonColors(containerColor = Rose500),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("确认删除", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismissRequest,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("取消", color = Color(0xFF64748B))
+            }
+        }
+    )
+}
+
+/**
+ * 兼容旧调用的 AddMemberDialog 包装器
+ */
+@Composable
+fun AddMemberDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: (MemberEntity) -> Unit
+) {
+    MemberFormDialog(
+        initialMember = null,
+        onDismissRequest = onDismissRequest,
+        onConfirm = onConfirm
+    )
 }
